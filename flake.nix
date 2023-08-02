@@ -11,7 +11,7 @@
     birdos.url = "github:spikespaz/dotfiles";
   };
 
-  outputs = inputs@{ self, ... }:
+  outputs = inputs@{ self, hyprland, ... }:
     let
       lib = inputs.birdos.lib;
       systems = [ "x86_64-linux" ];
@@ -19,6 +19,8 @@
       # pkgsFor =
       #   lib.genAttrs systems (system: import nixpkgs { localSystem = system; });
     in {
+      inherit (hyprland) overlays packages nixConfig;
+
       homeManagerModules = {
         default = self.homeManagerModules.hyprland;
         hyprland = import ./hm-module;
