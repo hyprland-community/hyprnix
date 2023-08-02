@@ -19,6 +19,11 @@
       # pkgsFor =
       #   lib.genAttrs systems (system: import nixpkgs { localSystem = system; });
     in {
+      homeManagerModules = {
+        default = self.homeManagerModules.hyprland;
+        hyprland = import ./hm-module;
+      };
+
       formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);
     };
 }
