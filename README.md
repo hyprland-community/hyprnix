@@ -12,19 +12,20 @@ for an explanation.
 
 Add the flake as an input to your own.
 The original flake from [hyprwm/hyprland] is included
-as `hyprland-package` for the sole sake of keeping the packages used in
+as `hyprland-git` for the sole sake of keeping the packages used in
 *this* flake up-to-date with Hyprland's default branch.
 
 ```nix
 {
     inputs = {
-        # The name `hyprland` is used for *this* flake.
-        hyprland.url = "github:spikespaz/hyprland-flake";
-        hyprland.inputs.hyprland.follows = "hyprland-package";
         # Track a different branch by appending `/branch-name` to the URL.
         # When it is omitted, the input will track the repository's
         # default branch.
-        hyprland-package.url = "github:hyprwm/hyprland";
+        hyprland-git.url = "github:hyprwm/hyprland";
+        # The name `hyprland-nix` is used for *this* flake.
+        hyprland-nix.url = "github:spikespaz/hyprland-flake";
+        # Note the input name is `hyprland`, perhaps you don't want official.
+        hyprland-nix.inputs.hyprland.follows = "hyprland-git";
         # ...
     };
     # ...
@@ -37,7 +38,7 @@ somewhere.
 
 ```nix
 { lib, pkgs, inputs, ... }: {
-    imports = [ inputs.hyprland.homeManagerModules.default ];
+    imports = [ inputs.hyprland-nix.homeManagerModules.default ];
 
     wayland.windowManager.hyprland = {
         enable = true;
@@ -57,17 +58,17 @@ somewhere.
 
 If you have adhered to the example in [Usage](#usage) for adding the two
 necessary flake inputs, you can use the following command to update Hyprland
-to the latest revision of the branch you have selected for `hyprland-package`.
+to the latest revision of the branch you have selected for `hyprland-git`.
 
 ```sh
-nix flake lock --update-input hyprland-package
+nix flake lock --update-input hyprland-git
 ```
 
 You can also update this flake separately. If you changed the name, remember to
 adjust the following command accordingly.
 
 ```sh
-nix flake lock --update-input hyprland
+nix flake lock --update-input hyprland-nix
 ```
 
 ## Documentation
