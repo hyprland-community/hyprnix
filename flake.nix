@@ -27,15 +27,32 @@
     birdos.url = "github:spikespaz/dotfiles";
   };
 
-  outputs = inputs@{ self, hyprland, ... }:
+  outputs = inputs@{ self, hyprland, hyprland-protocols, hyprland-xdph, ... }:
     let
-      lib = inputs.birdos.lib;
+      lib = inputs.birdos.lib.extend (import ./lib.nix);
       systems = [ "x86_64-linux" ];
       eachSystem = lib.genAttrs systems;
       # pkgsFor =
       #   lib.genAttrs systems (system: import nixpkgs { localSystem = system; });
     in {
-      inherit (hyprland) overlays packages nixConfig;
+      # TODO
+      inherit (hyprland) packages;
+
+      # The most important overlys are re-exported from this flake.
+      # This flake's `default` overlay contains minimum required overlays.
+      # Other overlays can be accessed through
+      # `inputs.hyprland-nix.inputs.<flake-name>.overlays.<overlay-name>`.
+      overlays = {
+        inherit (hyprland.overlays)
+          hyprland-packages hyprland-extras waybar-hyprland wlroots-hyprland;
+        inherit (hyprland-xdph.overlays)
+          xdg-desktop-portal-hyprland hyprland-share-picker;
+      } // {
+        default = lib.mkJoinedOverlays (with self.overlays; [
+          hyprland-packages
+          hyprland-extras
+        ]);
+      };
 
       homeManagerModules = {
         default = self.homeManagerModules.hyprland;
@@ -43,5 +60,10 @@
       };
 
       formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);
+
+      # This is good if you use the `packages` output. If these settings
+      # are accepted, you can use the binary cache for packages locked
+      # and built for upstream repositories.
+      inherit (hyprland) nixConfig;
     };
 }
