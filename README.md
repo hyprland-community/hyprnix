@@ -11,21 +11,46 @@ for an explanation.
 ## Usage
 
 Add the flake as an input to your own.
-The original flake from [hyprwm/hyprland] is included
-as `hyprland-git` for the sole sake of keeping the packages used in
-*this* flake up-to-date with Hyprland's default branch.
 
 ```nix
 {
     inputs = {
-        # Track a different branch by appending `/branch-name` to the URL.
-        # When it is omitted, the input will track the repository's
-        # default branch.
-        hyprland-git.url = "github:hyprwm/hyprland";
         # The name `hyprland-nix` is used for *this* flake.
         hyprland-nix.url = "github:spikespaz/hyprland-flake";
-        # Note the input name is `hyprland`, perhaps you don't want official.
-        hyprland-nix.inputs.hyprland.follows = "hyprland-git";
+        # ...
+    };
+    # ...
+}
+```
+
+The flakes from the `hyprwm` organization are included as inputs to allow them
+to be easily overridden. You can set `.follows` to track one of your own inputs.
+
+This can be useful in several situations. One reason you might want to do this
+is if you want to lock each of these inputs independently, instead of waiting
+for upstream repositories to update their own `flake.lock`.
+
+Perhaps the most practical usage would be to use a different branch for Hyprland.
+You can do this by appending the branch to the end of the URL, preceded by a `/`.
+
+Here is a maximal example.
+
+```nix
+{
+    inputs = {
+        # This input for Hyprland explicitly tracks the `master` branch.
+        # Feel free to change this as you need.
+        hyprland-git.url = "github:hyprwm/hyprland/master";
+        hyprland-xdph-git.url = "github:hyprwm/xdg-desktop-portal-hyprland";
+        hyprland-protocols-git.url = "github:hyprwm/xdg-desktop-portal-hyprland";
+        # This overrides each input for `hyprland-nix` to use the ones
+        # specified above, which are locked by you.
+        hyprland-nix.url = "github:spikespaz/hyprland-flake";
+        hyprland-nix.inputs = {
+            hyprland.follows = "hyprland-git";
+            hyprland-xdph.follows = "hyprland-xdph-git";
+            hyprland-protocols.follows = "hyprland-protocols-git";
+        };
         # ...
     };
     # ...
