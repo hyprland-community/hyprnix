@@ -35,11 +35,15 @@
     let
       lib = inputs.birdos.lib.extend (import ./lib.nix);
       eachSystem = lib.genAttrs (import systems);
-      # pkgsFor =
-      #   lib.genAttrs systems (system: import nixpkgs { localSystem = system; });
     in {
-      # TODO
-      inherit (hyprland) packages;
+      # Packages have priority from right-to-left. Packages from the rightmost
+      # attributes will replace those with the same name on the accumulated left.
+      # This is done specifically for when inputs of `hyprland-xdph`
+      # and `hyprland` diverge, packages from `hyprland-xdph` are chosen.
+      packages = eachSystem (system:
+        hyprland.packages.${system} // hyprland-xdph.packages.${system} // {
+          default = hyprland.packages.${system}.hyprland;
+        });
 
       # The most important overlys are re-exported from this flake.
       # This flake's `default` overlay contains minimum required overlays.
