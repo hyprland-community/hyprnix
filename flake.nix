@@ -7,6 +7,9 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
+    # <https://github.com/nix-systems/nix-systems>
+    systems.url = "github:nix-systems/default-linux";
+
     # Official `hyprwm` flakes. Re-listed here because you can `follows`
     # this flake's inputs.
     hyprland = {
@@ -27,11 +30,11 @@
     birdos.url = "github:spikespaz/dotfiles";
   };
 
-  outputs = inputs@{ self, hyprland, hyprland-protocols, hyprland-xdph, ... }:
+  outputs =
+    inputs@{ self, systems, hyprland, hyprland-protocols, hyprland-xdph, ... }:
     let
       lib = inputs.birdos.lib.extend (import ./lib.nix);
-      systems = [ "x86_64-linux" ];
-      eachSystem = lib.genAttrs systems;
+      eachSystem = lib.genAttrs (import systems);
       # pkgsFor =
       #   lib.genAttrs systems (system: import nixpkgs { localSystem = system; });
     in {
