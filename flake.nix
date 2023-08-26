@@ -14,14 +14,17 @@
     # this flake's inputs.
     hyprland = {
       url = "github:hyprwm/hyprland";
+      inputs.systems.follows = "systems";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland-protocols = {
       url = "github:hyprwm/hyprland-protocols";
+      inputs.systems.follows = "systems";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland-xdph = {
       url = "github:hyprwm/xdg-desktop-portal-hyprland";
+      inputs.systems.follows = "systems";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.hyprland-protocols.follows = "hyprland-protocols";
     };
@@ -55,10 +58,8 @@
         inherit (hyprland-xdph.overlays)
           xdg-desktop-portal-hyprland hyprland-share-picker;
       } // {
-        default = lib.mkJoinedOverlays (with self.overlays; [
-          hyprland-packages
-          hyprland-extras
-        ]);
+        default = lib.mkJoinedOverlays
+          (with self.overlays; [ hyprland-packages hyprland-extras ]);
       };
 
       homeManagerModules = {
