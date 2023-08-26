@@ -5,7 +5,7 @@
 This flake was `filter-repo`'d out from [spikespaz/dotfiles].
 
 We have yet to determine a permanent home for this code.
-See [this issue comment](https://github.com/spikespaz/hyprland-flake/issues/1)
+See [this issue comment](https://github.com/spikespaz/hyprland-nix/issues/1)
 for an explanation.
 
 ## Usage
@@ -16,7 +16,7 @@ Add the flake as an input to your own.
 {
     inputs = {
         # The name `hyprland-nix` is used for *this* flake.
-        hyprland-nix.url = "github:spikespaz/hyprland-flake";
+        hyprland-nix.url = "github:spikespaz/hyprland-nix";
         # ...
     };
     # ...
@@ -45,7 +45,7 @@ Here is a maximal example.
         hyprland-protocols-git.url = "github:hyprwm/xdg-desktop-portal-hyprland";
         # This overrides each input for `hyprland-nix` to use the ones
         # specified above, which are locked by you.
-        hyprland-nix.url = "github:spikespaz/hyprland-flake";
+        hyprland-nix.url = "github:spikespaz/hyprland-nix";
         hyprland-nix.inputs = {
             hyprland.follows = "hyprland-git";
             hyprland-xdph.follows = "hyprland-xdph-git";
