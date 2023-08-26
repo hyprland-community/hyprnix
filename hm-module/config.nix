@@ -261,18 +261,18 @@ in {
       ];
     })
     (lib.mkIf (cfg.config != null) {
-      xdg.configFile."hypr/hyprland.conf".text =
+      wayland.windowManager.hyprland.configFile."hyprland.conf".text =
         lib.mkOrder 500 (toConfigString cfg.config);
     })
     (lib.mkIf (cfg.extraConfig != null) {
-      xdg.configFile."hypr/hyprland.conf".text =
+      wayland.windowManager.hyprland.configFile."hyprland.conf".text =
         lib.mkOrder 900 cfg.extraConfig;
     })
     (lib.mkIf cfg.reloadConfig {
       wayland.windowManager.hyprland.config.misc.disable_autoreload =
         lib.mkDefault true;
 
-      xdg.configFile."hypr/hyprland.conf".onChange = ''
+      xdg.configFile."hypr".onChange = ''
         (
           shopt -s nullglob
           for instance in /tmp/hypr/*; do
