@@ -1,6 +1,10 @@
+self:
 args@{ config, lib, pkgs, ... }:
-let
+let lib' = lib.pipe lib [ (l: l.extend (import "${self.inputs.birdos}/lib")) ];
+in let
+  lib = lib';
   inherit (lib) types;
+
   cfg = config.wayland.windowManager.hyprland;
 in {
   options = {

@@ -33,10 +33,16 @@
     birdos.url = "github:spikespaz/dotfiles";
   };
 
-  outputs =
-    inputs@{ self, systems, hyprland, hyprland-protocols, hyprland-xdph, ... }:
+  outputs = inputs@{ self, nixpkgs, systems, hyprland, hyprland-protocols
+    , hyprland-xdph, ... }:
     let
-      lib = inputs.birdos.lib.extend (import ./lib.nix);
+      lib' = nixpkgs.lib.pipe nixpkgs.lib [
+        (l: l.extend (import "${self.inputs.birdos}/lib"))
+        (l: l.extend (import "${self}/lib.nix"))
+      ];
+    in let
+      lib = lib';
+
       eachSystem = lib.genAttrs (import systems);
     in {
       # Packages have priority from right-to-left. Packages from the rightmost
@@ -64,7 +70,7 @@
 
       homeManagerModules = {
         default = self.homeManagerModules.hyprland;
-        hyprland = import ./hm-module;
+        hyprland = import ./hm-module self;
       };
 
       formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);

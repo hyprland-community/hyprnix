@@ -1,5 +1,8 @@
+self:
 args@{ inputs, config, pkgs, lib, ... }:
-let
+let lib' = lib.pipe lib [ (l: l.extend (import "${self.inputs.birdos}/lib")) ];
+in let
+  lib = lib';
   inherit (lib) types;
 
   cfg = config.wayland.windowManager.hyprland;
@@ -44,6 +47,14 @@ in {
           be done if you want to use the NixOS module to install Hyprland.
         '';
       };
+
+      # plugins = lib.mkOption {
+      #   type = types.listOf (types.either types.package types.path);
+      #   default = [];
+      #   description = lib.mdDoc ''
+      #     List of paths or packages to install as Hyprland plugins.
+      #   '';
+      # };
 
       systemdIntegration = lib.mkOption {
         type = types.bool;

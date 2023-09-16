@@ -1,7 +1,11 @@
+self:
 { config, lib, pkgs, ... }:
-let
-  cfg = config.wayland.windowManager.hyprland;
+let lib' = lib.pipe lib [ (l: l.extend (import "${self.inputs.birdos}/lib")) ];
+in let
+  lib = lib';
   inherit (lib) types;
+
+  cfg = config.wayland.windowManager.hyprland;
 in {
   disabledModules = [
     # module in Home Manager conflicts with this one
@@ -9,11 +13,11 @@ in {
   ];
 
   imports = [
-    ./events.nix
-    ./config.nix
-    ./rules.nix # windowrulev2, layerrule, workspace
-    ./animations.nix
-    ./keybinds.nix
+    (import ./events.nix self)
+    (import ./config.nix self)
+    (import ./rules.nix self) # windowrulev2, layerrule, workspace
+    (import ./animations.nix self)
+    (import ./keybinds.nix self)
   ];
 
   options = let
