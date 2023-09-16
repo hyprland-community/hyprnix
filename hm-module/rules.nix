@@ -1,6 +1,10 @@
 self:
 args@{ config, lib, pkgs, ... }:
-let lib' = lib.pipe lib [ (l: l.extend (import "${self.inputs.birdos}/lib")) ];
+let
+  lib' = lib.pipe lib [
+    (l: l.extend (import "${self.inputs.birdos}/lib"))
+    (l: l.extend (import "${self}/lib"))
+  ];
 in let
   lib = lib';
   inherit (lib) types;
