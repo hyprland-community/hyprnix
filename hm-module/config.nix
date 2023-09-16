@@ -1,5 +1,5 @@
 self:
-args@{ inputs, config, lib, pkgs, ... }:
+args@{ config, lib, pkgs, ... }:
 let
   lib' = lib.pipe lib [
     (l: l.extend (import "${self.inputs.birdos}/lib"))
@@ -12,7 +12,7 @@ in let
   cfg = config.wayland.windowManager.hyprland;
   cfgPath = "config.wayland.windowManager.hyprland";
 
-  defaultPackage = inputs.hyprland-git.packages.${pkgs.system}.hyprland;
+  defaultPackage = self.inputs.hyprland-git.packages.${pkgs.system}.hyprland;
 
   configFormat = (import ./configFormat.nix args) cfg.configFormatOptions;
   configRenames = import ./configRenames.nix args;
