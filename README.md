@@ -1,12 +1,14 @@
-# Unofficial Hyprland Flake
+# ~~Unofficial~~ Hyprland Flake
 
 > **WORK IN PROGRESS**
 
 This flake was `filter-repo`'d out from [spikespaz/dotfiles].
 
-We have yet to determine a permanent home for this code.
+~~We have yet to determine a permanent home for this code.
 See [this issue comment](https://github.com/spikespaz/hyprland-nix/issues/1)
-for an explanation.
+for an explanation.~~
+
+Endorsed, but I have to fnish it.
 
 ## Usage
 
@@ -33,7 +35,7 @@ for upstream repositories to update their own `flake.lock`.
 Perhaps the most practical usage would be to use a different branch for Hyprland.
 You can do this by appending the branch to the end of the URL, preceded by a `/`.
 
-Here is a maximal example.
+#### Here is a maximal example.
 
 ```nix
 {
@@ -69,6 +71,8 @@ somewhere.
         enable = true;
         reloadConfig = true;
         systemdIntegration = true;
+        # recommendedEnvironment = false;
+        # nvidiaPatches = true;
 
         config = {
             # ...
