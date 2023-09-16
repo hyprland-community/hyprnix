@@ -5,6 +5,7 @@ let
     (l: l.extend (import "${self.inputs.birdos}/lib"))
     (l: l.extend (import "${self}/lib"))
   ];
+  args' = args // { lib = lib'; };
 in let
   lib = lib';
   inherit (lib) types;
@@ -14,8 +15,8 @@ in let
 
   defaultPackage = self.inputs.hyprland-git.packages.${pkgs.system}.hyprland;
 
-  configFormat = (import ./configFormat.nix args) cfg.configFormatOptions;
-  configRenames = import ./configRenames.nix args;
+  configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
+  configRenames = import ./configRenames.nix args';
 
   toConfigString = attrs:
     lib.pipe attrs [
@@ -232,7 +233,7 @@ in {
           defaultText = lib.literalExpression ''
             prev: next:
               let
-                configFormat = (import ./configFormat.nix args) cfg.configFormatOptions;
+                configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
                 inherit (configFormat.lib) nodeType isRepeatNode isSectionNode;
                 betweenDifferent = nodeType prev != nodeType next;
                 betweenRepeats = isRepeatNode prev && isRepeatNode next;

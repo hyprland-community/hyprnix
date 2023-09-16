@@ -5,13 +5,14 @@ let
     (l: l.extend (import "${self.inputs.birdos}/lib"))
     (l: l.extend (import "${self}/lib"))
   ];
+  args' = args // { lib = lib'; };
 in let
   lib = lib';
   inherit (lib) types;
 
   cfg = config.wayland.windowManager.hyprland;
 
-  configFormat = (import ./configFormat.nix args) cfg.configFormatOptions;
+  configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
 
   inherit (configFormat.lib)
     mkVariableNode mkRepeatNode insertLineBreakNodesRecursive renderNodeList;

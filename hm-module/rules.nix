@@ -5,6 +5,7 @@ let
     (l: l.extend (import "${self.inputs.birdos}/lib"))
     (l: l.extend (import "${self}/lib"))
   ];
+  args' = args // { lib = lib'; };
 in let
   lib = lib';
   inherit (lib) types;
@@ -202,7 +203,7 @@ in {
         ++ (lib.optional (rule.title != null) rule.title));
     layerRuleToString = rule: "${rule.rule}, ${rule.namespace}";
 
-    configFormat = (import ./configFormat.nix args) { };
+    configFormat = (import ./configFormat.nix args') { };
     inherit (configFormat.lib) valueToString;
 
     compileWorkspaceRules = rules:
