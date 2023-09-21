@@ -62,7 +62,7 @@
       # `inputs.hyprland-nix.inputs.<flake-name>.overlays.<overlay-name>`.
       overlays = {
         inherit (hyprland.overlays)
-          hyprland-packages hyprland-extras waybar-hyprland wlroots-hyprland;
+          hyprland-packages hyprland-extras wlroots-hyprland;
         inherit (hyprland-xdph.overlays)
           xdg-desktop-portal-hyprland hyprland-share-picker;
       } // {
