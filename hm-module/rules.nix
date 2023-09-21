@@ -1,14 +1,10 @@
 self:
 args@{ config, lib, pkgs, ... }:
 let
-  lib' = lib.pipe lib [
-    (l: l.extend self.inputs.bird-nix-lib.lib.overlay)
-    (l: l.extend (import "${self}/lib"))
-  ];
-  args' = args // { lib = lib'; };
-in let
-  lib = lib';
+  inherit (self.lib) lib;
   inherit (lib) types;
+
+  args' = args // { inherit lib; };
 
   cfg = config.wayland.windowManager.hyprland;
 in {
