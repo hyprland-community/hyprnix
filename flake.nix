@@ -30,14 +30,14 @@
     };
 
     nixfmt.url = "github:serokell/nixfmt";
-    birdos.url = "github:spikespaz/dotfiles";
+    bird-nix-lib.url = "github:spikespaz/bird-nix-lib";
   };
 
   outputs = inputs@{ self, nixpkgs, systems, hyprland, hyprland-protocols
     , hyprland-xdph, ... }:
     let
       lib' = nixpkgs.lib.pipe nixpkgs.lib [
-        (l: l.extend (import "${self.inputs.birdos}/lib"))
+        (l: l.extend self.inputs.bird-nix-lib.lib.overlay)
         (l: l.extend (import "${self}/lib"))
       ];
     in let

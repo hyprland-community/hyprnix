@@ -2,7 +2,7 @@ self:
 { config, lib, pkgs, ... }:
 let
   lib' = lib.pipe lib [
-    (l: l.extend (import "${self.inputs.birdos}/lib"))
+    (l: l.extend self.inputs.bird-nix-lib.lib.overlay)
     (l: l.extend (import "${self}/lib"))
   ];
 in let
