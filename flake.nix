@@ -45,6 +45,17 @@
 
       eachSystem = lib.genAttrs (import systems);
     in {
+      lib = {
+        # The overlays are combined because members of this flake's `lib`
+        # may not work without `bird-nix-lib`.
+        overlay = lib.bird.mkJoinedOverlays [
+          self.inputs.bird-nix-lib.lib.overlay
+          (import ./lib)
+        ];
+        # Each module in this flake inherits the final `lib` exposed here.
+        lib = nixpkgs.lib.extend self.lib.overlay;
+      };
+
       # Packages have priority from right-to-left. Packages from the rightmost
       # attributes will replace those with the same name on the accumulated left.
       # This is done specifically for when inputs of `hyprland-xdph`
