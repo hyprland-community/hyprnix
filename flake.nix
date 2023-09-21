@@ -75,6 +75,24 @@
         hyprland = import ./hm-module self;
       };
 
+      checks = eachSystem (system:
+        let pkgs = import nixpkgs { localSystem = system; };
+        in {
+          check-formatting = pkgs.stdenvNoCC.mkDerivation {
+            name = "check-formatting";
+            src = ./.;
+            phases = [ "checkPhase" "installPhase" ];
+            doCheck = true;
+            nativeCheckInputs = [ inputs.nixfmt.packages.${system}.default ];
+            checkPhase = ''
+              cd $src
+              echo 'Checking Nix code formatting with Nixfmt:'
+              nixfmt --check .
+            '';
+            installPhase = "touch $out";
+          };
+        });
+
       formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);
 
       # Should be kept in sync with upstream.
