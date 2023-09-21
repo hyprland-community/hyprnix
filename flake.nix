@@ -77,9 +77,13 @@
 
       formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);
 
-      # This is good if you use the `packages` output. If these settings
-      # are accepted, you can use the binary cache for packages locked
-      # and built for upstream repositories.
-      inherit (hyprland) nixConfig;
+      # Should be kept in sync with upstream.
+      # <https://github.com/hyprwm/Hyprland/blob/1925e64c21811ce76e5059d7a063f968c2d3e98c/flake.nix#L98-L101>
+      nixConfig = {
+        extra-substituters = [ "https://hyprland.cachix.org" ];
+        extra-trusted-public-keys = [
+          "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+        ];
+      };
     };
 }
