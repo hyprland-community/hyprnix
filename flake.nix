@@ -45,8 +45,6 @@
 
       eachSystem = lib.genAttrs (import systems);
     in {
-      inherit lib;
-
       # Packages have priority from right-to-left. Packages from the rightmost
       # attributes will replace those with the same name on the accumulated left.
       # This is done specifically for when inputs of `hyprland-xdph`
@@ -66,7 +64,7 @@
         inherit (hyprland-xdph.overlays)
           xdg-desktop-portal-hyprland hyprland-share-picker;
       } // {
-        default = lib.hl.mkJoinedOverlays
+        default = lib.bird.mkJoinedOverlays
           (with self.overlays; [ hyprland-packages hyprland-extras ]);
       };
 
