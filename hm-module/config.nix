@@ -261,6 +261,11 @@ in {
         "systemctl --user start hyprland-session.target"
       ];
     })
+    (lib.mkIf (!cfg.systemdIntegration) {
+      wayland.windowManager.hyprland.config.exec_once = [
+        "${pkgs.dbus}/bin/dbus-update-activation-environment DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP"
+      ];
+    })
     (lib.mkIf (cfg.config != null) {
       wayland.windowManager.hyprland.configFile."hyprland.conf".text =
         lib.mkOrder 500 (toConfigString cfg.config);
