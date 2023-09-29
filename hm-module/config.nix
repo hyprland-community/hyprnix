@@ -120,6 +120,8 @@ in {
       configOrder = lib.mkOption {
         type = types.listOf (types.listOf types.singleLineStr);
         default = [
+          [ "env" ]
+
           [ "exec-once" ]
           [ "exec" ]
 
