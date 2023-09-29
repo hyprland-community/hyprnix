@@ -23,6 +23,21 @@ in {
         '';
       };
 
+      environment = lib.mkOption {
+        type = with types; lazyAttrsOf (oneOf [ str path int float ]);
+        default = { };
+        description = lib.mdDoc ''
+          Set environment variables for the Hyprland session,
+          similar to {option}`home.sessionVariables`.
+
+          This is a convenience option that sets
+          {option}`wayland.windowManager.hyprland.config.env`.
+
+          Environment variables here are not used in any session other
+          than Hyprland.
+        '';
+      };
+
       recommendedEnvironment = lib.mkOption {
         type = types.bool;
         default = pkgs.stdenv.isLinux;
@@ -78,6 +93,10 @@ in {
             ++ cfg.dbusEnvironment ++ cfg.extraDbusEnvironment)
         }"
       ];
+
+      wayland.windowManager.hyprland.config.env =
+        lib.mapAttrsToList (name: value: "${name},${toString value}")
+        cfg.environment;
     }
     (lib.mkIf cfg.systemdIntegration {
       systemd.user.targets.hyprland-session = {
@@ -93,10 +112,7 @@ in {
         lib.mkOrder 11 [ "systemctl --user start hyprland-session.target" ];
     })
     (lib.mkIf cfg.recommendedEnvironment {
-      wayland.windowManager.hyprland.config.env =
-        lib.mapAttrsToList (name: value: "${name},${toString value}") {
-          NIXOS_OZONE_WL = 1;
-        };
+      wayland.windowManager.hyprland.environment = { NIXOS_OZONE_WL = 1; };
     })
   ];
 }
