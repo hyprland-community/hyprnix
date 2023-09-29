@@ -28,6 +28,12 @@ in {
         default = pkgs.stdenv.isLinux;
         description = lib.mdDoc ''
           Whether to set some recommended environment variables.
+
+          These are specific to the Hyprland session and are not exported
+          through {option}`home.sessionVariables`.
+
+          This is because those variables would be used by all sessions,
+          graphical or not, no matter the specific window manager.
         '';
       };
 
@@ -87,7 +93,10 @@ in {
         lib.mkOrder 11 [ "systemctl --user start hyprland-session.target" ];
     })
     (lib.mkIf cfg.recommendedEnvironment {
-      home.sessionVariables = { NIXOS_OZONE_WL = "1"; };
+      wayland.windowManager.hyprland.config.env =
+        lib.mapAttrsToList (name: value: "${name},${toString value}") {
+          NIXOS_OZONE_WL = 1;
+        };
     })
   ];
 }
