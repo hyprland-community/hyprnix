@@ -30,10 +30,37 @@ in {
           Whether to set some recommended environment variables.
         '';
       };
+
+      dbusEnvironment = lib.mkOption {
+        type = types.listOf types.singleLineStr;
+        default = [
+            "DISPLAY"
+            "WAYLAND_DISPLAY"
+            "HYPRLAND_INSTANCE_SIGNATURE"
+            "XDG_CURRENT_DESKTOP"
+        ];
+        description = lib.mkDoc ''
+          Names of environment variables to be exported for
+          all D-Bus session services.
+
+          These variables will also be exported for systemd if
+          {option}`wayland.windowManager.hyprland.systemdIntegration`
+          is enabled.
+        '';
+      };
     };
   };
 
   config = lib.mkMerge [
+    {
+      wayland.windowManager.hyprland.config.exec_once = lib.mkOrder 10 [
+        "${pkgs.dbus}/bin/dbus-update-activation-environment ${
+          lib.concatStringsSep " "
+          ((lib.optional cfg.systemdIntegration "--systemd")
+            ++ cfg.dbusEnvironment)
+        }"
+      ];
+    }
     (lib.mkIf cfg.systemdIntegration {
       systemd.user.targets.hyprland-session = {
         Unit = {
@@ -44,16 +71,8 @@ in {
           After = [ "graphical-session-pre.target" ];
         };
       };
-
-      wayland.windowManager.hyprland.config.exec_once = [
-        "${pkgs.dbus}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP"
-        "systemctl --user start hyprland-session.target"
-      ];
-    })
-    (lib.mkIf (!cfg.systemdIntegration) {
-      wayland.windowManager.hyprland.config.exec_once = [
-        "${pkgs.dbus}/bin/dbus-update-activation-environment DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP"
-      ];
+      wayland.windowManager.hyprland.config.exec_once =
+        lib.mkOrder 11 [ "systemctl --user start hyprland-session.target" ];
     })
     (lib.mkIf cfg.recommendedEnvironment {
       home.sessionVariables = { NIXOS_OZONE_WL = "1"; };
