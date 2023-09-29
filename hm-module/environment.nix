@@ -34,10 +34,10 @@ in {
       dbusEnvironment = lib.mkOption {
         type = types.listOf types.singleLineStr;
         default = [
-            "DISPLAY"
-            "WAYLAND_DISPLAY"
-            "HYPRLAND_INSTANCE_SIGNATURE"
-            "XDG_CURRENT_DESKTOP"
+          "DISPLAY"
+          "WAYLAND_DISPLAY"
+          "HYPRLAND_INSTANCE_SIGNATURE"
+          "XDG_CURRENT_DESKTOP"
         ];
         description = lib.mkDoc ''
           Names of environment variables to be exported for
@@ -46,6 +46,18 @@ in {
           These variables will also be exported for systemd if
           {option}`wayland.windowManager.hyprland.systemdIntegration`
           is enabled.
+        '';
+      };
+
+      extraDbusEnvironment = lib.mkOption {
+        type = types.listOf types.singleLineStr;
+        default = [ ];
+        description = lib.mdDoc ''
+          Extra names of environment variables to be added to
+          {option}`wayland.windowManager.hyprland.dbusEnvironment`.
+
+          It is recommended to use this option instead of modifying
+          the option mentioned above.
         '';
       };
     };
@@ -57,7 +69,7 @@ in {
         "${pkgs.dbus}/bin/dbus-update-activation-environment ${
           lib.concatStringsSep " "
           ((lib.optional cfg.systemdIntegration "--systemd")
-            ++ cfg.dbusEnvironment)
+            ++ cfg.dbusEnvironment ++ cfg.extraDbusEnvironment)
         }"
       ];
     }
