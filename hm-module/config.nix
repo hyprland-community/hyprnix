@@ -64,19 +64,11 @@ in {
           Whether to enable {file}`hyprland-session.target` on
           hyprland startup. This links to {file}`graphical-session.target`.
           Some important environment variables will be imported to systemd
-          and dbus user environment before reaching the target, including
+          and dbus user environment before reaching the target, including:
           - {env}`DISPLAY`
           - {env}`HYPRLAND_INSTANCE_SIGNATURE`
           - {env}`WAYLAND_DISPLAY`
           - {env}`XDG_CURRENT_DESKTOP`
-        '';
-      };
-
-      recommendedEnvironment = lib.mkOption {
-        type = types.bool;
-        default = pkgs.stdenv.isLinux;
-        description = lib.mdDoc ''
-          Whether to set the recommended environment variables.
         '';
       };
 
@@ -252,9 +244,6 @@ in {
     in {
       home.packages = lib.optional (cfg.package != null) package'
         ++ lib.optional cfg.xwayland.enable pkgs.xwayland;
-
-      home.sessionVariables =
-        lib.mkIf cfg.recommendedEnvironment { NIXOS_OZONE_WL = "1"; };
     })
     (lib.mkIf cfg.systemdIntegration {
       systemd.user.targets.hyprland-session = {
