@@ -30,7 +30,7 @@ in {
         See <${defaultPackage.meta.homepage}> for more information.
       '');
       package = lib.mkOption {
-        type = with lib.types; nullOr package;
+        type = types.package;
         default = defaultPackage;
         example = lib.literalExpression ''
           pkgs.hyprland # if you use the overlay
@@ -46,6 +46,16 @@ in {
 
           Set to null to not add any Hyprland package to your path. This should
           be done if you want to use the NixOS module to install Hyprland.
+        '';
+      };
+
+      finalPackage = lib.mkOption {
+        type = types.package;
+        readOnly = true;
+        description = lib.mdDoc ''
+          The final Hyprland packge that should be used in other parts of configuration.
+          This is the result after applying overrides which are enabled/disabled/specified
+          by other options of this module (for example, `xwayland.enable` or `nvidiaPatches`).
         '';
       };
 
@@ -214,15 +224,14 @@ in {
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
-    (let
-      package' = cfg.package.override {
+    {
+      wayland.windowManager.hyprland.finalPackage = cfg.package.override {
         enableXWayland = cfg.xwayland.enable;
         inherit (cfg) nvidiaPatches;
       };
-    in {
-      home.packages = lib.optional (cfg.package != null) package'
+      home.packages = [ cfg.finalPackage ]
         ++ lib.optional cfg.xwayland.enable pkgs.xwayland;
-    })
+    }
     (lib.mkIf (cfg.config != null) {
       wayland.windowManager.hyprland.configFile."hyprland.conf".text =
         lib.mkOrder 500 (toConfigString cfg.config);
@@ -240,7 +249,7 @@ in {
           shopt -s nullglob
           for instance in /tmp/hypr/*; do
             HYPRLAND_INSTANCE_SIGNATURE=''${instance##*/}
-            response="$(${cfg.package}/bin/hyprctl reload config-only 2>&1)"
+            response="$(${cfg.finalPackage}/bin/hyprctl reload config-only 2>&1)"
             [[ $response =~ ^ok ]] && \
               echo "Hyprland instance reloaded: $HYPRLAND_INSTANCE_SIGNATURE"
           done
