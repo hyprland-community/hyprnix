@@ -65,14 +65,6 @@ in {
         '';
       };
 
-      xwayland.hidpi = lib.mkOption {
-        type = types.bool;
-        default = false;
-        description = lib.mdDoc ''
-          Enable HiDPI XWayland.
-        '';
-      };
-
       nvidiaPatches = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -225,7 +217,6 @@ in {
     (let
       package' = cfg.package.override {
         enableXWayland = cfg.xwayland.enable;
-        hidpiXWayland = cfg.xwayland.hidpi;
         inherit (cfg) nvidiaPatches;
       };
     in {
