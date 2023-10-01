@@ -29,6 +29,7 @@ in {
 
         See <${defaultPackage.meta.homepage}> for more information.
       '');
+
       package = lib.mkOption {
         type = types.package;
         default = defaultPackage;
@@ -176,6 +177,7 @@ in {
             return `true` for "ascend" and `false` for descend.
           '';
         };
+
         indentChars = lib.mkOption {
           type = types.strMatching "([ \\t]+)";
           default = "    ";
@@ -183,6 +185,7 @@ in {
             Characters to use for each indent level,
           '';
         };
+
         spaceAroundEquals = lib.mkOption {
           type = types.bool;
           default = true;
@@ -190,6 +193,7 @@ in {
             Whether to have spaces before and after an equals `=` operator.
           '';
         };
+
         lineBreakPred = lib.mkOption {
           type = types.anything;
           # type = with types; functionTo (functionTo bool);

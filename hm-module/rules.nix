@@ -31,9 +31,7 @@ in {
             };
           };
         });
-
         default = [ ];
-
         description = lib.mdDoc ''
           List of sets containing:
 
@@ -43,7 +41,6 @@ in {
            See the example for more information.
           ```
         '';
-
         example = lib.literalExpression ''
           [
             {
@@ -82,9 +79,7 @@ in {
             };
           };
         });
-
         default = [ ];
-
         description = lib.mdDoc ''
           List of sets containing:
 
@@ -123,7 +118,6 @@ in {
           ]
           ```
         '';
-
         example = lib.literalExpression ''
           let
             obsStudio = {
