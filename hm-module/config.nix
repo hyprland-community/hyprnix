@@ -9,7 +9,7 @@ let
   cfg = config.wayland.windowManager.hyprland;
   cfgPath = "config.wayland.windowManager.hyprland";
 
-  defaultPackage = self.inputs.hyprland-git.packages.${pkgs.system}.hyprland;
+  defaultPackage = self.packages.${pkgs.system}.hyprland;
 
   configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
   configRenames = import ./configRenames.nix args';
