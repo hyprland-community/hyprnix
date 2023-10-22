@@ -139,6 +139,8 @@ in {
           [ "input" ]
           [ "binds" ]
           [ "gestures" ]
+          [ "group" ]
+          [ "group" "groupbar" ]
           [ "decoration" ]
           [ "animations" ]
 
