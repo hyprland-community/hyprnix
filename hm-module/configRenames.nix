@@ -129,6 +129,22 @@ in {
       original = [ "gestures" "workspace_swipe_numbered" ];
     }
     {
+      prefer = [ "group" "active_border_color" ];
+      original = [ "group" "col.border_active" ];
+    }
+    {
+      prefer = [ "group" "inactive_border_color" ];
+      original = [ "group" "col.border_inactive" ];
+    }
+    {
+      prefer = [ "group" "locked_active_border_color" ];
+      original = [ "group" "col.border_locked_active" ];
+    }
+    {
+      prefer = [ "group" "locked_inactive_border_color" ];
+      original = [ "group" "col.border_locked_inactive" ];
+    }
+    {
       prefer = [ "misc" "variable_framerate" ];
       original = [ "misc" "vfr" ];
     }
