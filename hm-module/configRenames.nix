@@ -145,6 +145,22 @@ in {
       original = [ "group" "col.border_locked_inactive" ];
     }
     {
+      prefer = [ "group" "groupbar" "active_color" ];
+      original = [ "group" "groupbar" "col.active" ];
+    }
+    {
+      prefer = [ "group" "groupbar" "inactive_color" ];
+      original = [ "group" "groupbar" "col.inactive" ];
+    }
+    {
+      prefer = [ "group" "groupbar" "locked_active_color" ];
+      original = [ "group" "groupbar" "col.locked_active" ];
+    }
+    {
+      prefer = [ "group" "groupbar" "locked_inactive_color" ];
+      original = [ "group" "groupbar" "col.locked_inactive" ];
+    }
+    {
       prefer = [ "misc" "variable_framerate" ];
       original = [ "misc" "vfr" ];
     }
