@@ -121,12 +121,28 @@ in {
       original = [ "gestures" "workspace_swipe_create_new" ];
     }
     {
+      prefer = [ "gestures" "workspace_swipe" "direction_lock" ];
+      original = [ "gestures" "workspace_swipe_direction_lock" ];
+    }
+    {
+      prefer = [ "gestures" "workspace_swipe" "direction_lock_threshold" ];
+      original = [ "gestures" "workspace_swipe_direction_lock_threshold" ];
+    }
+    {
       prefer = [ "gestures" "workspace_swipe" "forever" ];
       original = [ "gestures" "workspace_swipe_forever" ];
     }
     {
       prefer = [ "gestures" "workspace_swipe" "numbered" ];
       original = [ "gestures" "workspace_swipe_numbered" ];
+    }
+    {
+      prefer = [ "gestures" "workspace_swipe" "use_r" ];
+      original = [ "gestures" "workspace_swipe_use_r" ];
+    }
+    {
+      prefer = [ "gestures" "workspace_swipe" "through_empty" ];
+      original = [ "gestures" "workspace_swipe_use_r" ];
     }
     {
       prefer = [ "group" "active_border_color" ];
