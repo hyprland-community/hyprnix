@@ -108,6 +108,15 @@ in {
               ```
             '';
           };
+          mirror = lib.mkOption {
+            type = types.nullOr types.singleLineStr;
+            default = null;
+            description = "The name of the monitor to mirror.";
+            example = lib.mdDoc ''
+              The "name" of the monitor is after the display protocol
+              it is connected with: `eDP-1`, `HDMI-A-1`, `DP-5`, `DP-6`, etc.
+            '';
+          };
 
           size = lib.mkOption {
             type = types.nullOr (point2DType types.float);
@@ -163,6 +172,7 @@ in {
               else
                 toString transformEnum.${config.transform})
             ]
+            (lib.optionals (config.mirror != null) [ "mirror" config.mirror ])
             #
           ];
         };
