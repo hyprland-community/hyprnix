@@ -81,16 +81,9 @@ in {
               indended for use in recursive Nix configurations.
             '';
           };
-
-          positionParam = lib.mkOption {
-            type = types.singleLineStr;
+          keywordParams = lib.mkOption {
+            type = types.listOf types.singleLineStr;
             internal = true;
-            readOnly = true;
-          };
-          resolutionParam = lib.mkOption {
-            type = types.singleLineStr;
-            internal = true;
-            readOnly = true;
           };
         };
 
@@ -105,22 +98,28 @@ in {
             y = config.resolution.y / config.scale;
           };
 
-          positionParam = lib.mkMerge [
-            # is X,Y
-            (lib.mkIf positionIsPoint
-              "${toString config.position.x}x${toString config.position.y}")
-            # is enum string
-            (lib.mkIf (!positionIsPoint) config.position)
-          ];
-          resolutionParam = lib.mkMerge [
-            # is X,Y
-            (lib.mkIf resolutionIsPoint
+          keywordParams = lib.concatLists [
+            [
+              config.name
+            ]
+
+            # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
+            (lib.optional resolutionIsPoint
               "${toString config.resolution.x}x${toString config.resolution.y}${
                 lib.optionalString (config.refreshRate != null)
                 "@${toString config.refreshRate}"
               }")
-            # is enum string
-            (lib.mkIf (!resolutionIsPoint) config.resolution)
+            # The resolution verbatim if it is an enum string.
+            (lib.optional (!resolutionIsPoint) config.resolution)
+
+            # The position in `XxY` format if it is a point.
+            (lib.optional positionIsPoint
+              "${toString config.position.x}x${toString config.position.y}")
+            # The position verbatim if it is an enum string.
+            (lib.optional (!positionIsPoint) config.position)
+
+            #
+            [ (toString config.scale) ]
           ];
         };
       }));
@@ -152,13 +151,6 @@ in {
 
   config = {
     wayland.windowManager.hyprland.config.monitor = lib.mapAttrsToList
-      (attrName:
-        { name, positionParam, resolutionParam, scale, ... }:
-        lib.concatStringsSep "," [
-          name
-          positionParam
-          resolutionParam
-          (toString scale)
-        ]) cfg;
+      (attrName: monitor: lib.concatStringsSep "," monitor.keywordParams) cfg;
   };
 }
