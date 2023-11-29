@@ -33,7 +33,7 @@ in {
               `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
             '';
           };
-          pos = lib.mkOption {
+          position = lib.mkOption {
             type = types.either (point2DType types.ints.unsigned)
               (types.enum [ "auto" ]);
             default = "auto";
@@ -44,7 +44,7 @@ in {
               string or an enum string.
             '';
           };
-          size = lib.mkOption {
+          resolution = lib.mkOption {
             type = types.either (point2DType types.ints.positive)
               (types.enum [ "preferred" "highrr" "highres" ]);
             default = "preferred";
@@ -73,12 +73,12 @@ in {
               a default mode for your specified resolution.
             '';
           };
-          position = lib.mkOption {
+          positionParam = lib.mkOption {
             type = types.singleLineStr;
             internal = true;
             readOnly = true;
           };
-          resolution = lib.mkOption {
+          resolutionParam = lib.mkOption {
             type = types.singleLineStr;
             internal = true;
             readOnly = true;
@@ -86,25 +86,27 @@ in {
         };
 
         config = let
-          posIsPoint = (point2DType types.ints.unsigned).check config.pos;
-          sizeIsPoint = (point2DType types.ints.positive).check config.size;
+          positionIsPoint =
+            (point2DType types.ints.unsigned).check config.position;
+          resolutionIsPoint =
+            (point2DType types.ints.positive).check config.resolution;
         in {
-          position = lib.mkMerge [
+          positionParam = lib.mkMerge [
             # is X,Y
-            (lib.mkIf posIsPoint
-              "${toString config.pos.x}x${toString config.pos.y}")
+            (lib.mkIf positionIsPoint
+              "${toString config.position.x}x${toString config.position.y}")
             # is enum string
-            (lib.mkIf (!posIsPoint) config.pos)
+            (lib.mkIf (!positionIsPoint) config.position)
           ];
-          resolution = lib.mkMerge [
+          resolutionParam = lib.mkMerge [
             # is X,Y
-            (lib.mkIf sizeIsPoint
-              "${toString config.size.x}x${toString config.size.y}${
+            (lib.mkIf resolutionIsPoint
+              "${toString config.resolution.x}x${toString config.resolution.y}${
                 lib.optionalString (config.refreshRate != null)
                 "@${toString config.refreshRate}"
               }")
             # is enum string
-            (lib.mkIf (!sizeIsPoint) config.size)
+            (lib.mkIf (!resolutionIsPoint) config.resolution)
           ];
         };
       }));
@@ -137,8 +139,12 @@ in {
   config = {
     wayland.windowManager.hyprland.config.monitor = lib.mapAttrsToList
       (attrName:
-        { name, position, resolution, scale, ... }:
-        lib.concatStringsSep "," [ name position resolution (toString scale) ])
-      cfg;
+        { name, positionParam, resolutionParam, scale, ... }:
+        lib.concatStringsSep "," [
+          name
+          positionParam
+          resolutionParam
+          (toString scale)
+        ]) cfg;
   };
 }
