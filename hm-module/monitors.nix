@@ -73,6 +73,15 @@ in {
               a default mode for your specified resolution.
             '';
           };
+
+          size = lib.mkOption {
+            type = types.nullOr (point2DType types.float);
+            description = ''
+              The virtual display size after scaling,
+              indended for use in recursive Nix configurations.
+            '';
+          };
+
           positionParam = lib.mkOption {
             type = types.singleLineStr;
             internal = true;
@@ -91,6 +100,11 @@ in {
           resolutionIsPoint =
             (point2DType types.ints.positive).check config.resolution;
         in {
+          size = lib.mkIf resolutionIsPoint {
+            x = config.resolution.x / config.scale;
+            y = config.resolution.y / config.scale;
+          };
+
           positionParam = lib.mkMerge [
             # is X,Y
             (lib.mkIf positionIsPoint
