@@ -6,6 +6,21 @@ let
 
   cfg = config.wayland.windowManager.hyprland.monitors;
 
+  # See docs of option `transform`.
+  transformEnum = {
+    "Normal" = 0;
+    "Degrees90" = 1;
+    "Degrees180" = 2;
+    "Degrees270" = 3;
+    "Flipped" = 4;
+    "FlippedDegrees90" = 5;
+    "FlippedDegrees180" = 6;
+    "FlippedDegrees270" = 7;
+  };
+  transformEnumType = types.enum
+    (builtins.attrValues transformEnum ++ builtins.attrNames transformEnum);
+
+  # For position and resolution.
   point2DType = numType:
     types.submodule {
       options = {
@@ -74,10 +89,23 @@ in {
             '';
           };
           bitdepth = lib.mkOption {
-            type = types.enum [8 10];
+            type = types.enum [ 8 10 ];
             default = 8;
             description = ''
               The color bit-depth of the monitor (8-bit or 10-bit color).
+            '';
+          };
+          transform = lib.mkOption {
+            type = transformEnumType;
+            default = "Normal";
+            description = ''
+              Attribute names (enum identifiers) and values (repr) from the
+              following ~~enum~~ attribute set are accepted as variants
+              in this option `lib.types.enum`.
+
+              ```nix
+              ${lib.generators.toPretty { multiline = true; } transformEnum}
+              ```
             '';
           };
 
@@ -127,9 +155,13 @@ in {
 
             #
             [ (toString config.scale) ]
+            [ "bitdepth" (toString config.bitdepth) ]
             [
-              "bitdepth"
-              (toString config.bitdepth)
+              "transform"
+              (if lib.isInt config.transform then
+                toString config.transform
+              else
+                toString transformEnum.${config.transform})
             ]
             #
           ];
