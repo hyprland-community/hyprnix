@@ -65,6 +65,14 @@ in {
               size of 2880x1800 pixels would be 1920x1200 virtual pixels.
             '';
           };
+          refreshRate = lib.mkOption {
+            type = types.nullOr (types.either types.ints.positive types.float);
+            default = null;
+            description = ''
+              The refresh rate of the monitor, if unspecified will choose
+              a default mode for your specified resolution.
+            '';
+          };
           position = lib.mkOption {
             type = types.singleLineStr;
             internal = true;
@@ -91,7 +99,10 @@ in {
           resolution = lib.mkMerge [
             # is X,Y
             (lib.mkIf sizeIsPoint
-              "${toString config.size.x}x${toString config.size.y}")
+              "${toString config.size.x}x${toString config.size.y}${
+                lib.optionalString (config.refreshRate != null)
+                "@${toString config.refreshRate}"
+              }")
             # is enum string
             (lib.mkIf (!sizeIsPoint) config.size)
           ];
