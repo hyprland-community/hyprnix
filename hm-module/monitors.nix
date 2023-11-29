@@ -73,6 +73,13 @@ in {
               a default mode for your specified resolution.
             '';
           };
+          bitdepth = lib.mkOption {
+            type = types.enum [8 10];
+            default = 8;
+            description = ''
+              The color bit-depth of the monitor (8-bit or 10-bit color).
+            '';
+          };
 
           size = lib.mkOption {
             type = types.nullOr (point2DType types.float);
@@ -120,6 +127,11 @@ in {
 
             #
             [ (toString config.scale) ]
+            [
+              "bitdepth"
+              (toString config.bitdepth)
+            ]
+            #
           ];
         };
       }));
