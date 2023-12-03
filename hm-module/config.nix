@@ -137,12 +137,17 @@ in {
           [ "master" ]
           [ "general" ]
           [ "input" ]
+          [ "input" "touchpad" ]
+          [ "input" "touchdevice" ]
+          [ "input" "tablet" ]
           [ "binds" ]
           [ "gestures" ]
           [ "group" ]
           [ "group" "groupbar" ]
           [ "decoration" ]
           [ "animations" ]
+          [ "animations" "bezier" ]
+          [ "animations" "animation" ]
 
           [ "blurls" ]
           [ "windowrule" ]
@@ -150,10 +155,8 @@ in {
           [ "windowrulev2" ]
 
           [ "misc" ]
+          [ "xwayland" ]
           [ "debug" ]
-
-          [ "animations" "bezier" ]
-          [ "animations" "animation" ]
         ];
         description = lib.mdDoc ''
           An ordered list of attribute paths
