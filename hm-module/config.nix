@@ -221,35 +221,38 @@ in {
           '';
         };
 
-        lineBreakPred = lib.mkOption {
-          type = types.anything;
-          # type = with types; functionTo (functionTo bool);
-          default = prev: next:
-            let
-              inherit (configFormat.lib) nodeType isRepeatNode isSectionNode;
-              betweenDifferent = nodeType prev != nodeType next;
-              betweenRepeats = isRepeatNode prev && isRepeatNode next;
-              betweenSections = isSectionNode prev && isSectionNode next;
-            in prev != null
-            && (betweenDifferent || betweenRepeats || betweenSections);
-          description = lib.mdDoc ''
-            The predicate with which to determine where to insert line breaks.
-            Return `true` to add a break, `false` to continue.
+        ## TODO Replace this with boolean flag options.
+        ## Asking a novice to build a predicate just to adjust some spacing
+        ## is too much, and this can be more parametric.
+        # lineBreakPred = lib.mkOption {
+        #   type = types.anything;
+        #   # type = with types; functionTo (functionTo bool);
+        #   default = prev: next:
+        #     let
+        #       inherit (configFormat.lib) nodeType isRepeatNode isSectionNode;
+        #       betweenDifferent = nodeType prev != nodeType next;
+        #       betweenRepeats = isRepeatNode prev && isRepeatNode next;
+        #       betweenSections = isSectionNode prev && isSectionNode next;
+        #     in prev != null
+        #     && (betweenDifferent || betweenRepeats || betweenSections);
+        #   description = lib.mdDoc ''
+        #     The predicate with which to determine where to insert line breaks.
+        #     Return `true` to add a break, `false` to continue.
 
-            Use functions from {path}`configFormat.nix` to test node types.
-          '';
-          defaultText = lib.literalExpression ''
-            prev: next:
-              let
-                configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
-                inherit (configFormat.lib) nodeType isRepeatNode isSectionNode;
-                betweenDifferent = nodeType prev != nodeType next;
-                betweenRepeats = isRepeatNode prev && isRepeatNode next;
-                betweenSections = isSectionNode prev && isSectionNode next;
-              in prev != null
-              && (betweenDifferent || betweenRepeats || betweenSections)
-          '';
-        };
+        #     Use functions from {path}`configFormat.nix` to test node types.
+        #   '';
+        #   defaultText = lib.literalExpression ''
+        #     prev: next:
+        #       let
+        #         configFormat = (import ./configFormat.nix args') cfg.configFormatOptions;
+        #         inherit (configFormat.lib) nodeType isRepeatNode isSectionNode;
+        #         betweenDifferent = nodeType prev != nodeType next;
+        #         betweenRepeats = isRepeatNode prev && isRepeatNode next;
+        #         betweenSections = isSectionNode prev && isSectionNode next;
+        #       in prev != null
+        #       && (betweenDifferent || betweenRepeats || betweenSections)
+        #   '';
+        # };
       };
     };
   };
