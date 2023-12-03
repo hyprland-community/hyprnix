@@ -177,6 +177,7 @@ in {
           [ "input" "touchpad" ]
           [ "input" "touchdevice" ]
           [ "input" "tablet" ]
+          [ "device:.*" ]
           [ "binds" ]
           [ "gestures" ]
           [ "group" ]
