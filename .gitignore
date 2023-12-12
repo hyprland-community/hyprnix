@@ -1,4 +1,4 @@
 # Nix
-result/
-result-man/
+/result
+/result-man
 
