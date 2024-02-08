@@ -48,6 +48,14 @@ in {
               `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
             '';
           };
+          description = lib.mkOption {
+            type = types.nullOr types.singleLineStr;
+            default = null;
+            description = ''
+              The description of a monitor as shown in the output of
+              `hyprctl monitors` (without the parenthesized name at the end).
+            '';
+          };
           position = lib.mkOption {
             type = types.either (point2DType types.ints.unsigned)
               (types.enum [ "auto" ]);
@@ -137,6 +145,9 @@ in {
           resolutionIsPoint =
             (point2DType types.ints.positive).check config.resolution;
         in {
+          name =
+            lib.mkIf (config.description != null) "desc:${config.description}";
+
           size = lib.mkIf resolutionIsPoint {
             x = config.resolution.x / config.scale;
             y = config.resolution.y / config.scale;
