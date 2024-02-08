@@ -105,6 +105,10 @@ let
       event = "monitoradded";
       vars = [ "MONITOR_NAME" ];
     };
+    monitorAddV2 = {
+      event = "monitoraddedv2";
+      vars = [ "MONITOR_ID" "MONITOR_NAME" "MONITOR_DESC" ];
+    };
     monitorRemove = {
       event = "monitorremoved";
       vars = [ "MONITOR_NAME" ];
