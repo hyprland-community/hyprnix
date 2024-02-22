@@ -28,6 +28,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.hyprland-protocols.follows = "hyprland-protocols";
     };
+    hyprlang = {
+      url = "github:hyprwm/hyprlang";
+      inputs.systems.follows = "systems";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     nixfmt.url = "github:serokell/nixfmt";
     bird-nix-lib.url = "github:spikespaz/bird-nix-lib";
