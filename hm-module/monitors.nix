@@ -96,6 +96,25 @@ in {
               a default mode for your specified resolution.
             '';
           };
+          vrrMode = lib.mkOption {
+            type = types.enum [ null "default" 1 "on" 0 "off" 2 "fullscreen" ];
+            default = null;
+            description = ''
+              Whether to enable variable refresh rate (FreeSync/AdaptiveSync/GSync).
+              This option is specifically for a monitor. There is a global option also,
+              `null`/`default` is for deferring.
+            '';
+            apply = mode:
+              if lib.isString mode then
+                {
+                  "default" = null;
+                  "on" = 1;
+                  "off" = 0;
+                  "fullscreen" = 2;
+                }.${mode}
+              else
+                mode;
+          };
           bitdepth = lib.mkOption {
             type = types.enum [ 8 10 ];
             default = 8;
@@ -176,6 +195,10 @@ in {
             #
             [ (toString config.scale) ]
             [ "bitdepth" (toString config.bitdepth) ]
+            (lib.optionals (config.vrrMode != null) [
+              "vrr"
+              (toString config.vrrMode)
+            ])
             [
               "transform"
               (if lib.isInt config.transform then
