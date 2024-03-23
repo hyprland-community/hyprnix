@@ -122,7 +122,7 @@ in {
   };
 
   config = {
-    wayland.windowManager.hyprland.configFile."keybinds.conf".text =
+    xdg.configFile."hypr/keybinds.conf".text =
       toConfigString cfg.configFormatOptions cfg.keyBinds;
 
     wayland.windowManager.hyprland.config.source =
