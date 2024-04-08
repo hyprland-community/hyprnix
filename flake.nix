@@ -34,7 +34,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixfmt.url = "github:serokell/nixfmt";
+    nixfmt.url = "github:nixos/nixfmt/v0.6.0";
     bird-nix-lib.url = "github:spikespaz/bird-nix-lib";
   };
 
