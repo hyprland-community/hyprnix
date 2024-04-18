@@ -1,6 +1,6 @@
-# ~~Unofficial~~ Hyprland Flake
+# Hyprnix
 
-> **WORK IN PROGRESS**
+> **WORK IN PROGRESS** - Feel free to browse the source code, obscure things should have comments.
 
 This flake was `filter-repo`'d out from [spikespaz/dotfiles].
 
@@ -8,7 +8,7 @@ This flake was `filter-repo`'d out from [spikespaz/dotfiles].
 See [this issue comment](https://github.com/spikespaz/hyprland-nix/issues/1)
 for an explanation.~~
 
-Endorsed, but I have to fnish it.
+Endorsed by other Nix users, but I have to finish it.
 
 ## Usage
 
