@@ -53,7 +53,7 @@
       lib = {
         # The overlays are combined because members of this flake's `lib`
         # may not work without `bird-nix-lib`.
-        overlay = lib.bird.mkJoinedOverlays [
+        overlay = lib.composeManyExtensions [
           self.inputs.bird-nix-lib.lib.overlay
           (import ./lib)
         ];
@@ -80,7 +80,7 @@
         inherit (hyprland-xdph.overlays)
           xdg-desktop-portal-hyprland hyprland-share-picker;
       } // {
-        default = lib.bird.mkJoinedOverlays
+        default = lib.composeManyExtensions
           (with self.overlays; [ hyprland-packages hyprland-extras ]);
       };
 
