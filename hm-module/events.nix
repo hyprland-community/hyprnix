@@ -222,7 +222,7 @@ in {
     listenerScript = pkgs.writeShellScript "hyprland-event-listener" ''
       set -o pipefail
 
-      socket="/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+      socket="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
       echo "INFO: opening socket: $socket"
 
       ${pkgs.netcat}/bin/nc -U "$socket" | while read -r line; do
