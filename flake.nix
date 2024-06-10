@@ -27,23 +27,15 @@
 
   outputs = { self, nixpkgs, systems, hyprland, bird-nix-lib }:
     let
-      lib' = nixpkgs.lib.pipe nixpkgs.lib [
-        (l: l.extend bird-nix-lib.lib.overlay)
-        (l: l.extend (import "${self}/lib"))
-      ];
-    in let
-      lib = lib';
-
+      inherit (self) lib;
       eachSystem = lib.genAttrs (import systems);
     in {
-      lib = {
-        # The overlays are combined because members of this flake's `lib`
-        # may not work without `bird-nix-lib`.
-        overlay =
-          lib.composeManyExtensions [ bird-nix-lib.lib.overlay (import ./lib) ];
-        # Each module in this flake inherits the final `lib` exposed here.
-        lib = nixpkgs.lib.extend self.lib.overlay;
-      };
+      lib = let
+        overlay = nixpkgs.lib.composeManyExtensions [
+          bird-nix-lib.lib.overlay
+          (import ./lib)
+        ];
+      in nixpkgs.lib.extend overlay // { inherit overlay; };
 
       packages = hyprland.packages;
 
