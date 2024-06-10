@@ -97,13 +97,13 @@ in {
         '';
       };
 
-      # plugins = lib.mkOption {
-      #   type = types.listOf (types.either types.package types.path);
-      #   default = [];
-      #   description = lib.mdDoc ''
-      #     List of paths or packages to install as Hyprland plugins.
-      #   '';
-      # };
+      plugins = lib.mkOption {
+        type = types.listOf (types.either types.package types.path);
+        default = [ ];
+        description = lib.mdDoc ''
+          List of paths or packages to install as Hyprland plugins.
+        '';
+      };
 
       xwayland.enable = lib.mkOption {
         type = types.bool;
@@ -187,6 +187,8 @@ in {
           [ "animations" "bezier" ]
           [ "animations" "animation" ]
 
+          [ "plugin" ]
+
           [ "blurls" ]
           [ "windowrule" ]
           [ "layerrule" ]
@@ -267,6 +269,15 @@ in {
       home.packages = [ cfg.finalPackage ]
         ++ lib.optional cfg.xwayland.enable pkgs.xwayland;
     }
+    # Can't set `hyprland.config.plugin` because the key is expected to be unique,
+    # and that attribute should be used for plugin config, not loading them.
+    (lib.mkIf (cfg.plugins != [ ]) {
+      wayland.windowManager.hyprland.configFile."hyprland.conf".text =
+        lib.mkOrder 350 (toConfigString {
+          plugin =
+            map (package: "${package}/lib/lib${package.pname}.so") cfg.plugins;
+        });
+    })
     (lib.mkIf (cfg.config != null) {
       wayland.windowManager.hyprland.configFile."hyprland.conf".text =
         lib.mkOrder 500 (toConfigString cfg.config);
