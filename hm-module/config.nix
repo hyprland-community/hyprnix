@@ -281,13 +281,14 @@ in {
 
       xdg.configFile."hypr".onChange = ''
         (
-          shopt -s nullglob
-          for instance in /tmp/hypr/*; do
-            HYPRLAND_INSTANCE_SIGNATURE=''${instance##*/}
-            response="$(${cfg.finalPackage}/bin/hyprctl reload config-only 2>&1)"
-            [[ $response =~ ^ok ]] && \
-              echo "Hyprland instance reloaded: $HYPRLAND_INSTANCE_SIGNATURE"
-          done
+          XDG_RUNTIME_DIR=''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+          if [[ -d "$XDG_RUNTIME_DIR/hypr" ]]; then
+            for instance in $(${cfg.finalPackage}/bin/hyprctl instances -j | jq ".[].instance" -r); do
+              response="$(${cfg.finalPackage}/bin/hyprctl -i "$instance" reload config-only 2>&1)"
+              [[ $response =~ ^ok ]] && \
+                echo "Hyprland instance reloaded: $HYPRLAND_INSTANCE_SIGNATURE"
+            done
+          fi
         )
       '';
     })
