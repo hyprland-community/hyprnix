@@ -34,7 +34,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixfmt.url = "github:nixos/nixfmt/v0.6.0";
     bird-nix-lib.url = "github:spikespaz/bird-nix-lib";
   };
 
@@ -97,7 +96,7 @@
             src = ./.;
             phases = [ "checkPhase" "installPhase" ];
             doCheck = true;
-            nativeCheckInputs = [ inputs.nixfmt.packages.${system}.default ];
+            nativeCheckInputs = [ pkgs.nixfmt-classic ];
             checkPhase = ''
               cd $src
               echo 'Checking Nix code formatting with Nixfmt:'
@@ -107,7 +106,8 @@
           };
         });
 
-      formatter = eachSystem (system: inputs.nixfmt.packages.${system}.default);
+      formatter =
+        eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-classic);
 
       # Should be kept in sync with upstream.
       # <https://github.com/hyprwm/Hyprland/blob/1925e64c21811ce76e5059d7a063f968c2d3e98c/flake.nix#L98-L101>
