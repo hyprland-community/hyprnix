@@ -27,15 +27,13 @@
 
   outputs = { self, nixpkgs, systems, hyprland, bird-nix-lib }:
     let
-      inherit (self) lib;
+      lib = nixpkgs.lib.extend (nixpkgs.lib.composeManyExtensions [
+        bird-nix-lib.lib.overlay
+        (import ./lib)
+      ]);
       eachSystem = lib.genAttrs (import systems);
     in {
-      lib = let
-        overlay = nixpkgs.lib.composeManyExtensions [
-          bird-nix-lib.lib.overlay
-          (import ./lib)
-        ];
-      in nixpkgs.lib.extend overlay // { inherit overlay; };
+      lib = lib // { overlay = import ./lib; };
 
       # Packages with the `-cross` suffix are removed,
       # prefer using `--all-systems` and providing remote builders which have `binfmt` configured.
