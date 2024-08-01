@@ -12,7 +12,7 @@
 
     # <https://github.com/hyprwm/Hyprland/blob/main/flake.nix>
     hyprland = {
-      url = "github:hyprwm/hyprland";
+      url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
       inputs.systems.follows = "systems";
     };
 
