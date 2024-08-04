@@ -57,13 +57,13 @@
 
       checks = eachSystem (system:
         let pkgs = import nixpkgs { localSystem = system; };
-        in {
+        in self.packages.${system} // {
           check-formatting = pkgs.stdenvNoCC.mkDerivation {
             name = "check-formatting";
             src = ./.;
             phases = [ "checkPhase" "installPhase" ];
             doCheck = true;
-            nativeCheckInputs = [ pkgs.nixfmt-classic ];
+            nativeCheckInputs = [ self.formatter.${system} ];
             checkPhase = ''
               cd $src
               echo 'Checking Nix code formatting with Nixfmt:'
