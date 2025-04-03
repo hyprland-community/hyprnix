@@ -5,7 +5,7 @@
   '';
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.follows = "hyprland/nixpkgs";
 
     # <https://github.com/nix-systems/nix-systems>
     systems.url = "github:nix-systems/default-linux";
@@ -14,7 +14,6 @@
     hyprland = {
       url = "github:hyprwm/hyprland";
       inputs.systems.follows = "systems";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Extensions to `nixpkgs.lib` required by the Hyprlang serializer.
