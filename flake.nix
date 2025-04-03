@@ -34,7 +34,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    bird-nix-lib.url = "github:spikespaz/bird-nix-lib";
+    # Extensions to `nixpkgs.lib` required by the Hyprlang serializer.
+    # <https://github.com/spikespaz/bird-nix-lib>
+    bird-nix-lib = {
+      url = "github:spikespaz/bird-nix-lib";
+      inputs.systems.follows = "systems";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, systems, hyprland, hyprland-protocols
