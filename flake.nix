@@ -37,7 +37,12 @@
         ];
       in nixpkgs.lib.extend overlay // { inherit overlay; };
 
-      packages = hyprland.packages;
+      # Packages with the `-cross` suffix are removed,
+      # prefer using `--all-systems` and providing remote builders which have `binfmt` configured.
+      # For GitHub CI, use an `aarch64` runner.
+      packages = lib.mapAttrs
+        (name: lib.filterAttrs (name: _: !(lib.hasSuffix "-cross" name)))
+        hyprland.packages;
 
       overlays = hyprland.overlays;
 
