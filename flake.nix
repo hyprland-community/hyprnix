@@ -10,26 +10,9 @@
     # <https://github.com/nix-systems/nix-systems>
     systems.url = "github:nix-systems/default-linux";
 
-    # Official `hyprwm` flakes. Re-listed here because you can `follows`
-    # this flake's inputs.
+    # <https://github.com/hyprwm/Hyprland/blob/main/flake.nix>
     hyprland = {
       url = "github:hyprwm/hyprland";
-      inputs.systems.follows = "systems";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hyprland-protocols = {
-      url = "github:hyprwm/hyprland-protocols";
-      inputs.systems.follows = "systems";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    hyprland-xdph = {
-      url = "github:hyprwm/xdg-desktop-portal-hyprland";
-      inputs.systems.follows = "systems";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.hyprland-protocols.follows = "hyprland-protocols";
-    };
-    hyprlang = {
-      url = "github:hyprwm/hyprlang";
       inputs.systems.follows = "systems";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -43,11 +26,10 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, systems, hyprland, hyprland-protocols
-    , hyprland-xdph, ... }:
+  outputs = { self, nixpkgs, systems, hyprland, bird-nix-lib }:
     let
       lib' = nixpkgs.lib.pipe nixpkgs.lib [
-        (l: l.extend self.inputs.bird-nix-lib.lib.overlay)
+        (l: l.extend bird-nix-lib.lib.overlay)
         (l: l.extend (import "${self}/lib"))
       ];
     in let
@@ -58,36 +40,15 @@
       lib = {
         # The overlays are combined because members of this flake's `lib`
         # may not work without `bird-nix-lib`.
-        overlay = lib.composeManyExtensions [
-          self.inputs.bird-nix-lib.lib.overlay
-          (import ./lib)
-        ];
+        overlay =
+          lib.composeManyExtensions [ bird-nix-lib.lib.overlay (import ./lib) ];
         # Each module in this flake inherits the final `lib` exposed here.
         lib = nixpkgs.lib.extend self.lib.overlay;
       };
 
-      # Packages have priority from right-to-left. Packages from the rightmost
-      # attributes will replace those with the same name on the accumulated left.
-      # This is done specifically for when inputs of `hyprland-xdph`
-      # and `hyprland` diverge, packages from `hyprland-xdph` are chosen.
-      packages = eachSystem (system:
-        hyprland.packages.${system} // hyprland-xdph.packages.${system} // {
-          default = hyprland.packages.${system}.hyprland;
-        });
+      packages = hyprland.packages;
 
-      # The most important overlys are re-exported from this flake.
-      # This flake's `default` overlay contains minimum required overlays.
-      # Other overlays can be accessed through
-      # `inputs.hyprland-nix.inputs.<flake-name>.overlays.<overlay-name>`.
-      overlays = {
-        inherit (hyprland.overlays)
-          hyprland-packages hyprland-extras wlroots-hyprland;
-        inherit (hyprland-xdph.overlays)
-          xdg-desktop-portal-hyprland hyprland-share-picker;
-      } // {
-        default = lib.composeManyExtensions
-          (with self.overlays; [ hyprland-packages hyprland-extras ]);
-      };
+      overlays = hyprland.overlays;
 
       homeManagerModules = {
         default = self.homeManagerModules.hyprland;
