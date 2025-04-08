@@ -65,7 +65,7 @@ in {
     };
   };
 
-  config = {
+  config = lib.mkIf (cfg.keyBinds != null) {
     wayland.windowManager.hyprland.configFile."keybinds.conf".text =
       keybindsFormat.toConfigString cfg.keyBinds;
 
