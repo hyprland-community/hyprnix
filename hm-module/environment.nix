@@ -5,21 +5,55 @@ let
 
   cfg = config.wayland.windowManager.hyprland;
 in {
+  imports = [
+    (lib.mkRenamedOptionModule # \
+      [ "wayland" "windowManager" "hyprland" "systemdIntegration" ] # \
+      [ "wayland" "windowManager" "hyprland" "systemd" "enable" ])
+  ];
+
   options = {
     wayland.windowManager.hyprland = {
-      systemdIntegration = lib.mkOption {
-        type = types.bool;
-        default = pkgs.stdenv.isLinux;
-        description = lib.mdDoc ''
-          Whether to enable {file}`hyprland-session.target` on
-          hyprland startup. This links to {file}`graphical-session.target`.
-          Some important environment variables will be imported to systemd
-          and dbus user environment before reaching the target, including:
-          - {env}`DISPLAY`
-          - {env}`HYPRLAND_INSTANCE_SIGNATURE`
-          - {env}`WAYLAND_DISPLAY`
-          - {env}`XDG_CURRENT_DESKTOP`
-        '';
+      systemd = {
+        enable = lib.mkEnableOption null // {
+          default = true;
+          description = ''
+            Whether to enable {file}`hyprland-session.target` on
+            hyprland startup. This links to {file}`graphical-session.target`.
+            Some important environment variables will be imported to systemd
+            and D-Bus user environment before reaching the target, including:
+            - {env}`DISPLAY`
+            - {env}`HYPRLAND_INSTANCE_SIGNATURE`
+            - {env}`WAYLAND_DISPLAY`
+            - {env}`XDG_CURRENT_DESKTOP`
+          '';
+        };
+
+        variables = lib.mkOption {
+          type = with lib.types; listOf singleLineStr;
+          default = [ ];
+          example = [ "--all" ];
+          description = ''
+            Names of environment variables to be exported for the systemd
+            user environment and D-Bus session services.
+
+            Note that this option is provided for compatibility with the
+            default Hyprland Home Manager module, and only has effect if
+            {option}`wayland.windowManager.hyprland.enable` is `true`.
+
+            Variables just for the D-Bus session services should be set by
+            {option}`wayland.windowManager.hyprland.dbusEnvironment` and
+            {option}`wayland.windowManager.hyprland.extraDbusEnvironment`.
+          '';
+        };
+
+        extraCommands = lib.mkOption {
+          type = with lib.types; listOf str;
+          default = [
+            "systemctl --user stop hyprland-session.target"
+            "systemctl --user start hyprland-session.target"
+          ];
+          description = "Extra commands to be run after D-Bus activation.";
+        };
       };
 
       environment = lib.mkOption {
@@ -63,9 +97,9 @@ in {
           Names of environment variables to be exported for
           all D-Bus session services.
 
-          These variables will also be exported for systemd if
-          {option}`wayland.windowManager.hyprland.systemdIntegration`
-          is enabled.
+          These variables will also be exported for the systemd user session
+          if {option}`wayland.windowManager.hyprland.systemd.enable`
+          is `true`.
         '';
       };
 
@@ -83,13 +117,14 @@ in {
     };
   };
 
-  config = lib.mkMerge [
+  config = let
+    dbusVariables = cfg.dbusEnvironment ++ cfg.extraDbusEnvironment;
+    systemdVariables = dbusVariables ++ cfg.systemd.variables;
+  in lib.mkMerge [
     {
       wayland.windowManager.hyprland.config.exec_once = lib.mkOrder 10 [
         "${pkgs.dbus}/bin/dbus-update-activation-environment ${
-          lib.concatStringsSep " "
-          ((lib.optional cfg.systemdIntegration "--systemd")
-            ++ cfg.dbusEnvironment ++ cfg.extraDbusEnvironment)
+          lib.concatStringsSep " " dbusVariables
         }"
       ];
 
@@ -97,7 +132,8 @@ in {
         lib.mapAttrsToList (name: value: "${name},${toString value}")
         cfg.environment;
     }
-    (lib.mkIf cfg.systemdIntegration {
+
+    (lib.mkIf cfg.systemd.enable {
       systemd.user.targets.hyprland-session = {
         Unit = {
           Description = "hyprland compositor session";
@@ -107,9 +143,14 @@ in {
           After = [ "graphical-session-pre.target" ];
         };
       };
-      wayland.windowManager.hyprland.config.exec_once =
-        lib.mkOrder 11 [ "systemctl --user start hyprland-session.target" ];
+
+      wayland.windowManager.hyprland.config.exec_once = lib.mkOrder 11 ([
+        "${pkgs.dbus}/bin/dbus-update-activation-environment ${
+          lib.concatStringsSep " " ([ "--systemd" ] ++ systemdVariables)
+        }"
+      ] ++ cfg.systemd.extraCommands);
     })
+
     (lib.mkIf cfg.recommendedEnvironment {
       wayland.windowManager.hyprland.environment = { NIXOS_OZONE_WL = 1; };
     })
