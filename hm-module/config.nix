@@ -184,6 +184,7 @@ in {
 
           [ "misc" ]
           [ "xwayland" ]
+          [ "ecosystem" ]
           [ "debug" ]
         ];
         description = lib.mdDoc ''
