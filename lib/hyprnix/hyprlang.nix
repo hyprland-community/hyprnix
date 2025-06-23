@@ -68,8 +68,11 @@ let
       repeats = lib.pipe attrs [
         (lib.filterAttrs (_: lib.isList))
         (lib.mapAttrsToList (name: values:
-          mkRepeatNode path name
-          (map (value: mkVariableNode path name value) values)))
+          mkRepeatNode path name (map (value:
+            if lib.isAttrs value then
+              mkSectionNode path name (attrsToNodeList (path ++ [ name ]) value)
+            else
+              mkVariableNode path name value) values)))
       ];
       sections = lib.pipe attrs [
         (lib.filterAttrs (_: lib.isAttrs))
@@ -82,8 +85,11 @@ let
     let
       recurse = l:
         lib.pipe l [
-          (map
-            (node: if isSectionNode node then mapValue recurse node else node))
+          (map (node:
+            if isRepeatNode node || isSectionNode node then
+              mapValue recurse node
+            else
+              node))
           (lib.sort (a: b: sortPred a.path b.path))
         ];
     in recurse;
