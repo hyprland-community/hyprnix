@@ -68,7 +68,7 @@ in {
           };
           resolution = lib.mkOption {
             type = types.either (point2DType types.ints.positive)
-              (types.enum [ "preferred" "highrr" "highres" ]);
+              (types.enum [ "preferred" "highrr" "highres" "maxwidth" ]);
             default = "preferred";
             description = ''
               The physical size of the display as `{ x, y }` attributes.
