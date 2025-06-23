@@ -5,8 +5,15 @@ let
 
   cfg = config.wayland.windowManager.hyprland.monitors;
 
+  mkIntEnum = mapping: {
+    inherit mapping;
+    type =
+      types.enum (builtins.attrValues mapping ++ builtins.attrNames mapping);
+    apply = x: if lib.isString x then mapping.${x} else x;
+  };
+
   # See docs of option `transform`.
-  transformEnum = {
+  transformEnum = mkIntEnum {
     "Normal" = 0;
     "Degrees90" = 1;
     "Degrees180" = 2;
@@ -16,18 +23,14 @@ let
     "FlippedDegrees180" = 6;
     "FlippedDegrees270" = 7;
   };
-  transformEnumType = types.enum
-    (builtins.attrValues transformEnum ++ builtins.attrNames transformEnum);
 
   # See docs of option `vrrMode`.
-  vrrModeEnum = {
+  vrrModeEnum = mkIntEnum {
     "default" = null;
     "on" = 1;
     "off" = 0;
     "fullscreen" = 2;
   };
-  vrrModeEnumType = types.enum
-    (builtins.attrValues vrrModeEnum ++ builtins.attrNames transformEnum);
 
   # For position and resolution.
   point2DType = numType:
@@ -124,15 +127,13 @@ in {
             '';
           };
           vrrMode = lib.mkOption {
-            type = vrrModeEnumType;
+            inherit (vrrModeEnum) type apply;
             default = null;
             description = ''
               Whether to enable variable refresh rate (FreeSync/AdaptiveSync/GSync).
               This option is specifically for a monitor. There is a global option also,
               `null`/`default` is for deferring.
             '';
-            apply = mode:
-              if lib.isString mode then vrrModeEnum.${mode} else mode;
           };
           bitdepth = lib.mkOption {
             type = types.enum [ 8 10 ];
@@ -142,7 +143,7 @@ in {
             '';
           };
           transform = lib.mkOption {
-            type = transformEnumType;
+            inherit (transformEnum) type apply;
             default = "Normal";
             description = ''
               Attribute names (enum identifiers) and values (repr) from the
@@ -153,11 +154,6 @@ in {
               ${lib.generators.toPretty { multiline = true; } transformEnum}
               ```
             '';
-            apply = transform:
-              if lib.isString transform then
-                transformEnum.${transform}
-              else
-                transform;
           };
           mirror = lib.mkOption {
             type = types.nullOr types.singleLineStr;
