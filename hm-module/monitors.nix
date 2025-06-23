@@ -196,10 +196,27 @@ in {
           name =
             lib.mkIf (config.description != null) "desc:${config.description}";
 
-          size = lib.mkIf resolutionIsPoint {
-            x = config.resolution.x / config.scale;
-            y = config.resolution.y / config.scale;
-          };
+          size = lib.mkIf resolutionIsPoint (let
+            transform = transformEnum.variantName config.transform;
+            horizontal = {
+              x = config.resolution.x / config.scale;
+              y = config.resolution.y / config.scale;
+            };
+            vertical = {
+              x = horizontal.y;
+              y = horizontal.x;
+            };
+            lut = {
+              "Normal" = horizontal;
+              "Degrees90" = vertical;
+              "Degrees180" = horizontal;
+              "Degrees270" = vertical;
+              "Flipped" = horizontal;
+              "FlippedDegrees90" = vertical;
+              "FlippedDegrees180" = horizontal;
+              "FlippedDegrees270" = vertical;
+            };
+          in lut.${transform});
 
           keywordParams = lib.concatLists [
             [
