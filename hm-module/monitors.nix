@@ -148,6 +148,11 @@ in {
               ${lib.generators.toPretty { multiline = true; } transformEnum}
               ```
             '';
+            apply = transform:
+              if lib.isString transform then
+                transformEnum.${transform}
+              else
+                transform;
           };
           mirror = lib.mkOption {
             type = types.nullOr types.singleLineStr;
@@ -213,13 +218,7 @@ in {
               "vrr"
               (toString config.vrrMode)
             ])
-            [
-              "transform"
-              (if lib.isInt config.transform then
-                toString config.transform
-              else
-                toString transformEnum.${config.transform})
-            ]
+            [ "transform" (toString config.transform) ]
             (lib.optionals (config.mirror != null) [ "mirror" config.mirror ])
             #
           ];
