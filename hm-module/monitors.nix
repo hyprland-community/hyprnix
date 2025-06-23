@@ -186,6 +186,11 @@ let
         readOnly = true;
         internal = true;
       };
+      positionString = lib.mkOption {
+        type = types.singleLineStr;
+        readOnly = true;
+        internal = true;
+      };
       keywordParams = lib.mkOption {
         type = types.listOf types.singleLineStr;
         internal = true;
@@ -234,17 +239,19 @@ let
       # The resolution verbatim if it is an enum string.
         config.resolution;
 
+      positionString = if positionIsPoint then
+      # The position in `XxY` format if it is a point.
+        "${toString config.position.x}x${toString config.position.y}"
+      else
+      # The position verbatim if it is an enum string.
+        config.position;
+
       keywordParams = lib.concatLists [
         [
           config.name
           config.modeString
+          config.positionString
         ]
-
-        # The position in `XxY` format if it is a point.
-        (lib.optional positionIsPoint
-          "${toString config.position.x}x${toString config.position.y}")
-        # The position verbatim if it is an enum string.
-        (lib.optional (!positionIsPoint) config.position)
 
         #
         [ (toString config.scale) ]
