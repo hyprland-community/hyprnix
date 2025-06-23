@@ -19,6 +19,16 @@ let
   transformEnumType = types.enum
     (builtins.attrValues transformEnum ++ builtins.attrNames transformEnum);
 
+  # See docs of option `vrrMode`.
+  vrrModeEnum = {
+    "default" = null;
+    "on" = 1;
+    "off" = 0;
+    "fullscreen" = 2;
+  };
+  vrrModeEnumType = types.enum
+    (builtins.attrValues vrrModeEnum ++ builtins.attrNames transformEnum);
+
   # For position and resolution.
   point2DType = numType:
     types.submodule {
@@ -114,7 +124,7 @@ in {
             '';
           };
           vrrMode = lib.mkOption {
-            type = types.enum [ null "default" 1 "on" 0 "off" 2 "fullscreen" ];
+            type = vrrModeEnumType;
             default = null;
             description = ''
               Whether to enable variable refresh rate (FreeSync/AdaptiveSync/GSync).
@@ -122,15 +132,7 @@ in {
               `null`/`default` is for deferring.
             '';
             apply = mode:
-              if lib.isString mode then
-                {
-                  "default" = null;
-                  "on" = 1;
-                  "off" = 0;
-                  "fullscreen" = 2;
-                }.${mode}
-              else
-                mode;
+              if lib.isString mode then vrrModeEnum.${mode} else mode;
           };
           bitdepth = lib.mkOption {
             type = types.enum [ 8 10 ];
