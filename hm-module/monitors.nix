@@ -60,12 +60,15 @@ let
     };
 
   monitorDefType = types.submodule ({ config, ... }: {
+    # <https://github.com/NixOS/nixpkgs/issues/96006>
+    imports = [ (lib.mkRenamedOptionModule [ "name" ] [ "output" ]) ];
+
     options = {
-      name = lib.mkOption {
+      output = lib.mkOption {
         type = types.singleLineStr;
         description = ''
-          The name of the monitor as shown in the output of
-          `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
+          The name of the output node that the monitor is connected to,
+          as shown in the output of `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
         '';
       };
       description = lib.mkOption {
@@ -163,10 +166,10 @@ let
       mirror = lib.mkOption {
         type = types.nullOr types.singleLineStr;
         default = null;
-        description = "The name of the monitor to mirror.";
+        description = "The output name of the monitor to mirror.";
         example = lib.mdDoc ''
-          The "name" of the monitor is after the display protocol
-          it is connected with: `eDP-1`, `HDMI-A-1`, `DP-5`, `DP-6`, etc.
+          The "output" of the monitor is named after its DRM output node,
+          usually the connector, for example: `eDP-1`, `HDMI-A-1`, `DP-5`, `DP-6`.
         '';
       };
 
@@ -202,7 +205,8 @@ let
       resolutionIsPoint =
         (point2DType types.ints.positive).check config.resolution;
     in {
-      name = lib.mkIf (config.description != null) "desc:${config.description}";
+      output =
+        lib.mkIf (config.description != null) "desc:${config.description}";
 
       size = if resolutionIsPoint then
         let
@@ -248,7 +252,7 @@ let
 
       keywordParams = lib.concatLists [
         [
-          config.name
+          config.output
           config.modeString
           config.positionString
         ]
@@ -275,15 +279,15 @@ in {
         Monitors to configure. The attribute name is not used in the
         Hyprland configuration, but is a convenience for recursive Nix.
 
-        The "name" the monitor will have (the connector, not make and model)
-        is specified in the `name` attribute for the monitor.
+        The "output" the monitor will have (the connector, not make and model)
+        is specified in the `output` attribute for the monitor.
         It is not the attribute name of the monitor in *this* parent set.
       '';
       example = lib.literalExpression ''
         (with config.wayland.windowManager.hyprland.monitors; {
           # The attribute name `internal` is for usage in recursive Nix.
           internal = {
-            name = "eDP-1";
+            output = "eDP-1";
             pos = "auto"; # `auto` is default
             size = "preferred"; # `preferred` is default
             bitdepth = 10;
