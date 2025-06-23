@@ -181,6 +181,11 @@ let
           attribute set of coordinates.
         '';
       };
+      modeString = lib.mkOption {
+        type = types.singleLineStr;
+        readOnly = true;
+        internal = true;
+      };
       keywordParams = lib.mkOption {
         type = types.listOf types.singleLineStr;
         internal = true;
@@ -219,19 +224,21 @@ let
       else
         null;
 
+      modeString = if resolutionIsPoint then
+      # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
+        "${toString config.resolution.x}x${toString config.resolution.y}${
+          lib.optionalString (config.refreshRate != null)
+          "@${toString config.refreshRate}"
+        }"
+      else
+      # The resolution verbatim if it is an enum string.
+        config.resolution;
+
       keywordParams = lib.concatLists [
         [
           config.name
+          config.modeString
         ]
-
-        # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
-        (lib.optional resolutionIsPoint
-          "${toString config.resolution.x}x${toString config.resolution.y}${
-            lib.optionalString (config.refreshRate != null)
-            "@${toString config.refreshRate}"
-          }")
-        # The resolution verbatim if it is an enum string.
-        (lib.optional (!resolutionIsPoint) config.resolution)
 
         # The position in `XxY` format if it is a point.
         (lib.optional positionIsPoint
