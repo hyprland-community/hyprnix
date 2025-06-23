@@ -194,10 +194,6 @@ let
         readOnly = true;
         internal = true;
       };
-      keywordParams = lib.mkOption {
-        type = types.listOf types.singleLineStr;
-        internal = true;
-      };
     };
 
     config = let
@@ -249,25 +245,6 @@ let
       else
       # The position verbatim if it is an enum string.
         config.position;
-
-      keywordParams = lib.concatLists [
-        [
-          config.output
-          config.modeString
-          config.positionString
-        ]
-
-        #
-        [ (toString config.scale) ]
-        [ "bitdepth" (toString config.bitdepth) ]
-        (lib.optionals (config.vrrMode != null) [
-          "vrr"
-          (toString config.vrrMode)
-        ])
-        [ "transform" (toString config.transform) ]
-        (lib.optionals (config.mirror != null) [ "mirror" config.mirror ])
-        #
-      ];
     };
   });
 in {
@@ -298,7 +275,17 @@ in {
   };
 
   config = {
-    wayland.windowManager.hyprland.config.monitor = lib.mapAttrsToList
-      (attrName: monitor: lib.concatStringsSep "," monitor.keywordParams) cfg;
+    wayland.windowManager.hyprland.config.monitorv2 = lib.mapAttrsToList
+      (_: def: {
+        inherit (def) output;
+        mode = def.modeString;
+        position = def.positionString;
+        scale = lib.mkIf (def.scale != 1.0) def.scale;
+        vrr = lib.mkIf (def.vrrMode != null) def.vrrMode;
+        bitdepth = lib.mkIf (def.bitdepth != 8) def.bitdepth;
+        transform = let default = transformEnum.mapping."Normal";
+        in lib.mkIf (def.transform != default) def.transform;
+        mirror = lib.mkIf (def.mirror != null) def.mirror;
+      }) cfg;
   };
 }
