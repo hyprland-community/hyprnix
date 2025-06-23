@@ -178,7 +178,10 @@ in {
             readOnly = true;
             description = ''
               The virtual display size after scaling,
-              indended for use in recursive Nix configurations.
+              intended for use in recursive Nix configurations.
+
+              This value can be `null` if {option}`resolution` is not an
+              attribute set of coordinates.
             '';
           };
           keywordParams = lib.mkOption {
@@ -196,27 +199,30 @@ in {
           name =
             lib.mkIf (config.description != null) "desc:${config.description}";
 
-          size = lib.mkIf resolutionIsPoint (let
-            transform = transformEnum.variantName config.transform;
-            horizontal = {
-              x = config.resolution.x / config.scale;
-              y = config.resolution.y / config.scale;
-            };
-            vertical = {
-              x = horizontal.y;
-              y = horizontal.x;
-            };
-            lut = {
-              "Normal" = horizontal;
-              "Degrees90" = vertical;
-              "Degrees180" = horizontal;
-              "Degrees270" = vertical;
-              "Flipped" = horizontal;
-              "FlippedDegrees90" = vertical;
-              "FlippedDegrees180" = horizontal;
-              "FlippedDegrees270" = vertical;
-            };
-          in lut.${transform});
+          size = if resolutionIsPoint then
+            let
+              transform = transformEnum.variantName config.transform;
+              horizontal = {
+                x = config.resolution.x / config.scale;
+                y = config.resolution.y / config.scale;
+              };
+              vertical = {
+                x = horizontal.y;
+                y = horizontal.x;
+              };
+              lut = {
+                "Normal" = horizontal;
+                "Degrees90" = vertical;
+                "Degrees180" = horizontal;
+                "Degrees270" = vertical;
+                "Flipped" = horizontal;
+                "FlippedDegrees90" = vertical;
+                "FlippedDegrees180" = horizontal;
+                "FlippedDegrees270" = vertical;
+              };
+            in lut.${transform}
+          else
+            null;
 
           keywordParams = lib.concatLists [
             [
