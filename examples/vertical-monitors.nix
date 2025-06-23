@@ -5,7 +5,7 @@
     with config.wayland.windowManager.hyprland.monitors; {
       # This display is always present, since it's built in to the laptop.
       laptop-internal = {
-        # Either `name` or `description` must be defined.
+        # Either `output` or `description` must be defined.
         #
         # You should probably prefer `description` because for most DRM output
         # nodes (for example `HDMI-A-1` or `DP-5`), hard-coded settings aren't
@@ -15,7 +15,7 @@
         # DRM node is consistent between reboots or re-connections.
         #
         # Since this display is built-in, in this specific circumstance,
-        # using `name = "eDP-1"` would also work fine.
+        # using `output = "eDP-1"` would also work fine.
         description = "Samsung Display Corp. 0x4193";
         resolution = {
           x = 2880;
@@ -66,7 +66,7 @@
       # Here is an entry that will handle arbitrary monitors,
       # setting the position to the right side of `laptop-internal`.
       default = {
-        name = "";
+        output = "";
         resolution = "preferred";
         position = lib.mapAttrs (_: builtins.floor) {
           x = laptop-internal.position.x + laptop-internal.size.x;
