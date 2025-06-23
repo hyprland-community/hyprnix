@@ -7,6 +7,16 @@ let
 
   mkIntEnum = mapping: {
     inherit mapping;
+    # Given `needle`, which is either the variant name or an integer value,
+    # return the corresponding variant name.
+    variantName = needle:
+      (lib.findFirst ({ name, value }: needle == name || needle == value) null
+        (lib.attrsToList mapping)).name;
+    # Given `needle`, which is either the variant name or an integer value,
+    # return the corresponding integer value.
+    variantValue = needle:
+      (lib.find ({ name, value }: needle == name || needle == value) null
+        (lib.attrsToList mapping)).value;
     type =
       types.enum (builtins.attrValues mapping ++ builtins.attrNames mapping);
     apply = x: if lib.isString x then mapping.${x} else x;
