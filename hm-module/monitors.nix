@@ -202,10 +202,27 @@ in {
           output =
             lib.mkIf (config.description != null) "desc:${config.description}";
 
-          size = lib.mkIf resolutionIsPoint {
-            x = config.resolution.x / config.scale;
-            y = config.resolution.y / config.scale;
-          };
+          size = lib.mkIf resolutionIsPoint (let
+            transform = transformEnum.variantName config.transform;
+            normal = {
+              x = config.resolution.x / config.scale;
+              y = config.resolution.y / config.scale;
+            };
+            rotated = {
+              x = normal.y;
+              y = normal.x;
+            };
+            lut = {
+              "Normal" = normal;
+              "Degrees90" = rotated;
+              "Degrees180" = normal;
+              "Degrees270" = rotated;
+              "Flipped" = normal;
+              "FlippedDegrees90" = rotated;
+              "FlippedDegrees180" = normal;
+              "FlippedDegrees270" = rotated;
+            };
+          in lut.${transform});
 
           modeString = if resolutionIsPoint then
           # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
