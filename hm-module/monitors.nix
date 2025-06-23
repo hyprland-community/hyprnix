@@ -175,6 +175,7 @@ in {
 
           size = lib.mkOption {
             type = types.nullOr (point2DType types.float);
+            readOnly = true;
             description = ''
               The virtual display size after scaling,
               indended for use in recursive Nix configurations.
