@@ -1,5 +1,18 @@
 {
   "pins": {
+    "home-manager": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "nix-community",
+        "repo": "home-manager"
+      },
+      "branch": "master",
+      "submodules": false,
+      "revision": "c9d8158bc56923013fa9a4346ba3e273f3b956b3",
+      "url": "https://github.com/nix-community/home-manager/archive/c9d8158bc56923013fa9a4346ba3e273f3b956b3.tar.gz",
+      "hash": "1a320kg5scjsbj87jbw8yc350jc5ixmciwc57hs685sp36h37yai"
+    },
     "nixpkgs": {
       "type": "Channel",
       "name": "nixpkgs-unstable",
