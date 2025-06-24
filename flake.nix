@@ -85,6 +85,13 @@
           };
         }) pkgsFor;
 
+      # $ nix flake check
+      # or
+      # $ nix eval 'path:.#tests'
+      tests = lib.bird.runTestsRecursive ./tests { inherit lib; } {
+        lib = { inherit (lib) hyprnix; };
+      };
+
       devShells = lib.mapAttrs (system: pkgs: {
         default = pkgs.mkShellNoCC { # #
           packages = [ pkgs.npins self.formatter.${system} ];
