@@ -1,10 +1,7 @@
 lib: lib0:
-lib0 // {
-  hyprnix = lib0.hyprnix or { } // {
-    types = lib0.hyprnix.types or { } // import ./hyprnix/types.nix lib lib0;
-    hyprlang = lib0.hyprnix.hyprlang or { }
-      // import ./hyprnix/hyprlang.nix lib lib0;
-  };
+let libAttrs = lib.mapAttrs (_: fn: fn lib lib0) (lib.importDir ./hyprnix null);
+in lib0 // {
+  hyprnix = libAttrs;
   generators = lib0.generators or { } // {
     toHyprlang = lib.hyprnix.hyprlang.toConfigString;
   };
