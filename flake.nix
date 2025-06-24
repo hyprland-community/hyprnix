@@ -69,6 +69,13 @@
           };
         });
 
+      # $ nix flake check
+      # or
+      # $ nix eval 'path:.#tests'
+      tests = lib.bird.runTestsRecursive ./tests { inherit lib; } {
+        lib = { inherit (lib) hyprnix; };
+      };
+
       formatter =
         eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-classic);
 
