@@ -29,6 +29,8 @@
     let
       inherit (self) lib;
       eachSystem = lib.genAttrs (import systems);
+      pkgsFor =
+        eachSystem (system: import nixpkgs { localSystem.system = system; });
     in {
       lib = let
         overlay = nixpkgs.lib.composeManyExtensions [
@@ -51,9 +53,8 @@
         hyprland = import ./hm-module self;
       };
 
-      checks = eachSystem (system:
-        let pkgs = import nixpkgs { localSystem = system; };
-        in self.packages.${system} // {
+      checks = lib.mapAttrs (system: pkgs:
+        self.packages.${system} // {
           check-formatting = pkgs.stdenvNoCC.mkDerivation {
             name = "check-formatting";
             src = ./.;
@@ -67,7 +68,7 @@
             '';
             installPhase = "touch $out";
           };
-        });
+        }) pkgsFor;
 
       formatter =
         eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-classic);
