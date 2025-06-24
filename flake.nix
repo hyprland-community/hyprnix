@@ -70,6 +70,12 @@
           };
         }) pkgsFor;
 
+      devShells = lib.mapAttrs (system: pkgs: {
+        default = pkgs.mkShellNoCC { # #
+          packages = [ pkgs.npins ];
+        };
+      }) pkgsFor;
+
       formatter =
         eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-classic);
 
