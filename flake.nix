@@ -28,9 +28,16 @@
   outputs = { self, nixpkgs, systems, hyprland, bird-nix-lib }:
     let
       inherit (self) lib;
+
       eachSystem = lib.genAttrs (import systems);
       pkgsFor =
         eachSystem (system: import nixpkgs { localSystem.system = system; });
+
+      prefixAttrs = prefix:
+        lib.mapAttrs' (name: value: {
+          name = "${prefix}${name}";
+          inherit value;
+        });
     in {
       lib = let
         overlay = nixpkgs.lib.composeManyExtensions [
@@ -54,7 +61,12 @@
       };
 
       checks = lib.mapAttrs (system: pkgs:
-        self.packages.${system} // {
+        let
+          examples = import ./examples {
+            inherit system;
+            hyprnix = self;
+          };
+        in self.packages.${system} // prefixAttrs "example-" examples // {
           check-formatting = let excludes = [ "examples/npins/default.nix" ];
           in pkgs.stdenvNoCC.mkDerivation {
             name = "check-formatting";
