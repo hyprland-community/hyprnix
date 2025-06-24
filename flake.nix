@@ -55,16 +55,19 @@
 
       checks = lib.mapAttrs (system: pkgs:
         self.packages.${system} // {
-          check-formatting = pkgs.stdenvNoCC.mkDerivation {
+          check-formatting = let excludes = [ "examples/npins/default.nix" ];
+          in pkgs.stdenvNoCC.mkDerivation {
             name = "check-formatting";
             src = ./.;
             phases = [ "checkPhase" "installPhase" ];
             doCheck = true;
-            nativeCheckInputs = [ self.formatter.${system} ];
+            nativeCheckInputs = [ pkgs.fd self.formatter.${system} ];
             checkPhase = ''
               cd $src
               echo 'Checking Nix code formatting with Nixfmt:'
-              nixfmt --check .
+              fd --hidden --type file --extension nix ${
+                lib.concatMapStrings (path: " --exclude '${path}'") excludes
+              } --exec nixfmt --check {}
             '';
             installPhase = "touch $out";
           };
@@ -79,7 +82,7 @@
 
       devShells = lib.mapAttrs (system: pkgs: {
         default = pkgs.mkShellNoCC { # #
-          packages = [ pkgs.npins ];
+          packages = [ pkgs.npins self.formatter.${system} ];
         };
       }) pkgsFor;
 
