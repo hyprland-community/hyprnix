@@ -1,3 +1,9 @@
+# This file is not to be considered example code.
+# It is responsible for instantiating the example modules, which are siblings
+# of this file, for the sake of using them as flake checks.
+#
+# `npins` is used to lock the inputs which are used to instantiate
+# a matrix of checks. Users should stick to the flake inputs interface.
 { system, hyprnix }:
 let
   # TODO: In the future, module checks should be instantiated for both
