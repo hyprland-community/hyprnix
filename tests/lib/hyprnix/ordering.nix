@@ -18,5 +18,11 @@ lib.bird.mkTestSuite {
       ];
       expect = [ 1 0 0 ];
     }
+    {
+      name = "keep the first inexact match";
+      expr = let patterns = [ [ ".*" ] [ "b" ] [ ".*" ] ];
+      in orderOfPath [ "a" ] patterns;
+      expect = 0;
+    }
   ];
 }
