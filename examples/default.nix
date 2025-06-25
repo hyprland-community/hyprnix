@@ -43,4 +43,9 @@ in {
   # This example has an empty module (`{ }`) because it is only intended to
   # check the generation of a minimal/default configuration.
   hyprland-enable = (mkExampleHome system { }).activationPackage;
+
+  # For debugging purposes,
+  # `nix build path:.#checks.x86_64-linux.example-vertical-monitors` may be of use.
+  vertical-monitors = (mkExampleHome system ./vertical-monitors.nix) # #
+    .config.wayland.windowManager.hyprland.configFile."hyprland.conf".source;
 }
