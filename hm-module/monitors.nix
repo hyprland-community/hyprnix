@@ -69,10 +69,13 @@ in {
             ]);
             default = "auto";
             description = ''
-              The position of the monitor as `{ x, y }` attributes.
+              The position of the monitor as `{ x, y }` attributes,
+              or the name of some automatic behavior.
 
-              This is not the same as {option}`position` which is a
-              string or an enum string.
+              ::: {.note}
+              Coordinates are offsets relative to the top-left corner of virtual
+              screen space.
+              :::
             '';
           };
           resolution = lib.mkOption {
@@ -80,10 +83,13 @@ in {
               (types.enum [ "preferred" "highrr" "highres" "maxwidth" ]);
             default = "preferred";
             description = ''
-              The physical size of the display as `{ x, y }` attributes.
+              The physical size of the display as `{ x, y }` attributes,
+              or the name of some automatic behavior.
 
-              This is not the same as {option}`option` which is a
-              string or an enum string.
+              ::: {.note}
+              If you want define your `position` attributes relative to
+              each other, use the value of {option}`scale` recursively.
+              :::
             '';
           };
           scale = lib.mkOption {
