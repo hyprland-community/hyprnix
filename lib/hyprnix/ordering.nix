@@ -1,5 +1,6 @@
 lib: _:
 let
+  inherit (lib.lists) findFirstIndex;
   inherit (lib.hyprnix.lists) elemsMatch;
 
   # Given a list of strings as `path` and a list of `patterns`,
@@ -8,16 +9,14 @@ let
   # `patterns`, positioning it last.
   orderOfPath = path: patterns:
     let
-      recurse = prior: index: patterns:
-        if lib.length patterns == 0 then
-          if prior != null then prior else index
-        else if lib.head patterns == path then
-          index
-        else if prior == null && elemsMatch (lib.head patterns) path then
-          recurse index (index + 1) (lib.tail patterns)
-        else
-          recurse prior (index + 1) (lib.tail patterns);
-    in recurse null 0 patterns;
+      exact = findFirstIndex (pattern: pattern == path) null patterns;
+      inexact = findFirstIndex (pattern: elemsMatch pattern path) null patterns;
+    in if exact != null then
+      exact
+    else if inexact != null then
+      inexact
+    else
+      lib.length patterns;
 in { # #
   inherit orderOfPath;
 }
