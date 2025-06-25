@@ -24,5 +24,11 @@ lib.bird.mkTestSuite {
       in orderOfPath [ "a" ] patterns;
       expect = 0;
     }
+    {
+      name = "no match will order last";
+      expr = let patterns = [ [ "b" ] [ "c" ] ];
+      in orderOfPath [ "a" ] patterns;
+      expect = 2;
+    }
   ];
 }
