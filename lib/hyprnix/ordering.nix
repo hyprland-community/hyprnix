@@ -10,7 +10,7 @@ let
     let
       recurse = prior: index: patterns:
         if lib.length patterns == 0 then
-          if prior != null then prior else index + 1
+          if prior != null then prior else index
         else if lib.head patterns == path then
           index
         else if prior == null && elemsMatch (lib.head patterns) path then
