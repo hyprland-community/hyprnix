@@ -56,8 +56,17 @@ in {
             '';
           };
           position = lib.mkOption {
-            type = types.either (point2DType types.ints.unsigned)
-              (types.enum [ "auto" ]);
+            type = types.either (point2DType types.ints.unsigned) (types.enum [
+              "auto"
+              "auto-up"
+              "auto-down"
+              "auto-left"
+              "auto-right"
+              "auto-center-up"
+              "auto-center-down"
+              "auto-center-left"
+              "auto-center-right"
+            ]);
             default = "auto";
             description = ''
               The position of the monitor as `{ x, y }` attributes.
