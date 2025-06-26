@@ -93,7 +93,7 @@ in {
             '';
           };
           scale = lib.mkOption {
-            type = types.float;
+            type = types.either types.float (types.enum [ "auto" ]);
             default = 1.0;
             description = ''
               The fractional scaling factor to use for Wayland-native programs.
