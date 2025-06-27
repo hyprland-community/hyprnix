@@ -61,7 +61,12 @@ let
 
   monitorDefType = types.submodule ({ config, ... }: {
     # <https://github.com/NixOS/nixpkgs/issues/96006>
-    imports = [ (lib.mkRenamedOptionModule [ "name" ] [ "output" ]) ];
+    imports = [
+      (lib.mkRenamedOptionModule [ "name" ] [ "output" ])
+      # @Ujinn34 wanted this option to be named `disable`.
+      # <https://github.com/hyprwm/Hyprland/discussions/10848#discussioncomment-13583976>
+      (lib.mkRenamedOptionModule [ "disabled" ] [ "disable" ])
+    ];
 
     # Other attributes may be specified for `monitorv2`, you can find them
     # here: <https://wiki.hypr.land/Configuring/Monitors/#monitor-v2>
@@ -81,6 +86,13 @@ let
         description = ''
           The description of a monitor as shown in the output of
           `hyprctl monitors` (without the parenthesized name at the end).
+        '';
+      };
+      disable = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Disable this monitor, removing it from the layout.
         '';
       };
       position = lib.mkOption {
@@ -294,6 +306,7 @@ in {
       (_: def:
         {
           inherit (def) output;
+          disabled = lib.mkIf def.disable def.disable;
           mode = def.modeString;
           position = def.positionString;
           scale = lib.mkIf (def.scale != 1.0) def.scale;
