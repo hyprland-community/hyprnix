@@ -25,6 +25,7 @@ let
     attrs:
     lib.pipe attrs [
       astBuilder
+      pruneEmptyNodesRecursive
       (sortNodeListRecursive sortPred)
       (insertLineBreakNodesRecursive lineBreakPred)
       (insertIndentNodesRecursive indentChars)
@@ -77,6 +78,14 @@ let
           mkSectionNode path name (attrsToNodeList (path ++ [ name ]) value)))
       ];
     in lib.concatLists [ variables repeats sections ];
+
+  pruneEmptyNodesRecursive = lib.foldl' (nodes: next:
+    let
+      next' = if isRepeatNode next || isSectionNode next then
+        mapValue pruneEmptyNodesRecursive next
+      else
+        next;
+    in if next'.value == [ ] then nodes else nodes ++ [ next' ]) [ ];
 
   sortNodeListRecursive = sortPred:
     let
@@ -170,8 +179,8 @@ let
 in {
   inherit
   # Transforms
-    toConfigString attrsToNodeList renderNodeList insertLineBreakNodesRecursive
-    insertIndentNodesRecursive
+    toConfigString attrsToNodeList pruneEmptyNodesRecursive renderNodeList
+    insertLineBreakNodesRecursive insertIndentNodesRecursive
     # Checks
     nodeType isNode isNodeType isStringNode isIndentNode isVariableNode
     isRepeatNode isSectionNode
