@@ -5,8 +5,25 @@ let
 
   cfg = config.wayland.windowManager.hyprland.monitors;
 
+  mkIntEnum = mapping: {
+    inherit mapping;
+    # Given `needle`, which is either the variant name or an integer value,
+    # return the corresponding variant name.
+    variantName = needle:
+      (lib.findFirst ({ name, value }: needle == name || needle == value) null
+        (lib.attrsToList mapping)).name;
+    # Given `needle`, which is either the variant name or an integer value,
+    # return the corresponding integer value.
+    variantValue = needle:
+      (lib.find ({ name, value }: needle == name || needle == value) null
+        (lib.attrsToList mapping)).value;
+    type =
+      types.enum (builtins.attrValues mapping ++ builtins.attrNames mapping);
+    apply = x: if lib.isString x then mapping.${x} else x;
+  };
+
   # See docs of option `transform`.
-  transformEnum = {
+  transformEnum = mkIntEnum {
     "Normal" = 0;
     "Degrees90" = 1;
     "Degrees180" = 2;
@@ -16,8 +33,14 @@ let
     "FlippedDegrees180" = 6;
     "FlippedDegrees270" = 7;
   };
-  transformEnumType = types.enum
-    (builtins.attrValues transformEnum ++ builtins.attrNames transformEnum);
+
+  # See docs of option `vrrMode`.
+  vrrModeEnum = mkIntEnum {
+    "default" = null;
+    "on" = 1;
+    "off" = 0;
+    "fullscreen" = 2;
+  };
 
   # For position and resolution.
   point2DType = numType:
@@ -35,224 +58,263 @@ let
         };
       };
     };
-in {
-  options = {
-    wayland.windowManager.hyprland.monitors = lib.mkOption {
-      type = types.attrsOf (types.submodule ({ config, ... }: {
-        options = {
-          name = lib.mkOption {
-            type = types.singleLineStr;
-            description = ''
-              The name of the monitor as shown in the output of
-              `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
-            '';
-          };
-          description = lib.mkOption {
-            type = types.nullOr types.singleLineStr;
-            default = null;
-            description = ''
-              The description of a monitor as shown in the output of
-              `hyprctl monitors` (without the parenthesized name at the end).
-            '';
-          };
-          position = lib.mkOption {
-            type = types.either (point2DType types.ints.unsigned) (types.enum [
-              "auto"
-              "auto-up"
-              "auto-down"
-              "auto-left"
-              "auto-right"
-              "auto-center-up"
-              "auto-center-down"
-              "auto-center-left"
-              "auto-center-right"
-            ]);
-            default = "auto";
-            description = ''
-              The position of the monitor as `{ x, y }` attributes,
-              or the name of some automatic behavior.
 
-              ::: {.note}
-              Coordinates are offsets relative to the top-left corner of virtual
-              screen space.
-              :::
-            '';
-          };
-          resolution = lib.mkOption {
-            type = types.either (point2DType types.ints.positive)
-              (types.enum [ "preferred" "highrr" "highres" "maxwidth" ]);
-            default = "preferred";
-            description = ''
-              The physical size of the display as `{ x, y }` attributes,
-              or the name of some automatic behavior.
+  monitorDefType = types.submodule ({ config, ... }: {
+    # <https://github.com/NixOS/nixpkgs/issues/96006>
+    imports = [
+      (lib.mkRenamedOptionModule [ "name" ] [ "output" ])
+      # @Ujinn34 wanted this option to be named `disable`.
+      # <https://github.com/hyprwm/Hyprland/discussions/10848#discussioncomment-13583976>
+      (lib.mkRenamedOptionModule [ "disabled" ] [ "disable" ])
+    ];
 
-              ::: {.note}
-              If you want define your `position` attributes relative to
-              each other, use the value of {option}`scale` recursively.
-              :::
-            '';
-          };
-          scale = lib.mkOption {
-            type = types.either types.float (types.enum [ "auto" ]);
-            default = 1.0;
-            description = ''
-              The fractional scaling factor to use for Wayland-native programs.
-              The virtual size of the display will be each dimension divided by
-              this float. For example, the virtual size of a monitor with a physical
-              size of 2880x1800 pixels would be 1920x1200 virtual pixels.
-            '';
-          };
-          refreshRate = lib.mkOption {
-            type = types.nullOr (types.either types.ints.positive types.float);
-            default = null;
-            description = ''
-              The refresh rate of the monitor, if unspecified will choose
-              a default mode for your specified resolution.
-            '';
-          };
-          vrrMode = lib.mkOption {
-            type = types.enum [ null "default" 1 "on" 0 "off" 2 "fullscreen" ];
-            default = null;
-            description = ''
-              Whether to enable variable refresh rate (FreeSync/AdaptiveSync/GSync).
-              This option is specifically for a monitor. There is a global option also,
-              `null`/`default` is for deferring.
-            '';
-            apply = mode:
-              if lib.isString mode then
-                {
-                  "default" = null;
-                  "on" = 1;
-                  "off" = 0;
-                  "fullscreen" = 2;
-                }.${mode}
-              else
-                mode;
-          };
-          bitdepth = lib.mkOption {
-            type = types.enum [ 8 10 ];
-            default = 8;
-            description = ''
-              The color bit-depth of the monitor (8-bit or 10-bit color).
-            '';
-          };
-          transform = lib.mkOption {
-            type = transformEnumType;
-            default = "Normal";
-            description = ''
-              Attribute names (enum identifiers) and values (repr) from the
-              following ~~enum~~ attribute set are accepted as variants
-              in this option `lib.types.enum`.
+    # Other attributes may be specified for `monitorv2`, you can find them
+    # here: <https://wiki.hypr.land/Configuring/Monitors/#monitor-v2>
+    freeformType = with types; attrsOf (oneOf [ bool number ]);
 
-              ```nix
-              ${lib.generators.toPretty { multiline = true; } transformEnum}
-              ```
-            '';
-          };
-          mirror = lib.mkOption {
-            type = types.nullOr types.singleLineStr;
-            default = null;
-            description = "The name of the monitor to mirror.";
-            example = lib.mdDoc ''
-              The "name" of the monitor is after the display protocol
-              it is connected with: `eDP-1`, `HDMI-A-1`, `DP-5`, `DP-6`, etc.
-            '';
-          };
+    options = {
+      output = lib.mkOption {
+        type = types.singleLineStr;
+        description = ''
+          The name of the output node that the monitor is connected to,
+          as shown in the output of `hyprctl monitors`, for example `eDP-1` or `HDMI-A-1`.
+        '';
+      };
+      description = lib.mkOption {
+        type = types.nullOr types.singleLineStr;
+        default = null;
+        description = ''
+          The description of a monitor as shown in the output of
+          `hyprctl monitors` (without the parenthesized name at the end).
+        '';
+      };
+      disable = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = ''
+          Disable this monitor, removing it from the layout.
+        '';
+      };
+      position = lib.mkOption {
+        type = types.either (point2DType types.ints.unsigned) (types.enum [
+          "auto"
+          "auto-up"
+          "auto-down"
+          "auto-left"
+          "auto-right"
+          "auto-center-up"
+          "auto-center-down"
+          "auto-center-left"
+          "auto-center-right"
+        ]);
+        default = "auto";
+        description = ''
+          The position of the monitor as `{ x, y }` attributes,
+          or the name of some automatic behavior.
 
-          size = lib.mkOption {
-            type = types.nullOr (point2DType types.float);
-            description = ''
-              The virtual display size after scaling,
-              indended for use in recursive Nix configurations.
-            '';
-          };
-          keywordParams = lib.mkOption {
-            type = types.listOf types.singleLineStr;
-            internal = true;
-          };
-        };
+          ::: {.note}
+          Coordinates are offsets relative to the top-left corner of virtual
+          screen space.
+          :::
+        '';
+      };
+      resolution = lib.mkOption {
+        type = types.either (point2DType types.ints.positive)
+          (types.enum [ "preferred" "highrr" "highres" "maxwidth" ]);
+        default = "preferred";
+        description = ''
+          The physical size of the display as `{ x, y }` attributes,
+          or the name of some automatic behavior.
 
-        config = let
-          positionIsPoint =
-            (point2DType types.ints.unsigned).check config.position;
-          resolutionIsPoint =
-            (point2DType types.ints.positive).check config.resolution;
-        in {
-          name =
-            lib.mkIf (config.description != null) "desc:${config.description}";
+          ::: {.note}
+          If you want define your `position` attributes relative to
+          each other, use the value of {option}`scale` recursively.
+          :::
+        '';
+      };
+      scale = lib.mkOption {
+        type = types.float;
+        default = 1.0;
+        description = ''
+          The fractional scaling factor to use for Wayland-native programs.
+          The virtual size of the display will be each dimension divided by
+          this float. For example, the virtual size of a monitor with a physical
+          size of 2880x1800 pixels would be 1920x1200 virtual pixels.
+        '';
+      };
+      refreshRate = lib.mkOption {
+        type = types.nullOr (types.either types.ints.positive types.float);
+        default = null;
+        description = ''
+          The refresh rate of the monitor, if unspecified will choose
+          a default mode for your specified resolution.
+        '';
+      };
+      vrrMode = lib.mkOption {
+        inherit (vrrModeEnum) type apply;
+        default = null;
+        description = ''
+          Whether to enable variable refresh rate (FreeSync/AdaptiveSync/GSync).
+          This option is specifically for a monitor. There is a global option also,
+          `null`/`default` is for deferring.
+        '';
+      };
+      bitdepth = lib.mkOption {
+        type = types.enum [ 8 10 ];
+        default = 8;
+        description = ''
+          The color bit-depth of the monitor (8-bit or 10-bit color).
+        '';
+      };
+      transform = lib.mkOption {
+        inherit (transformEnum) type apply;
+        default = "Normal";
+        description = ''
+          Attribute names (enum identifiers) and values (repr) from the
+          following ~~enum~~ attribute set are accepted as variants
+          in this option `lib.types.enum`.
 
-          size = lib.mkIf resolutionIsPoint {
+          ```nix
+          ${lib.generators.toPretty { multiline = true; } transformEnum}
+          ```
+        '';
+      };
+      mirror = lib.mkOption {
+        type = types.nullOr types.singleLineStr;
+        default = null;
+        description = "The output name of the monitor to mirror.";
+        example = lib.mdDoc ''
+          The "output" of the monitor is named after the display protocol
+          it is connected with: `eDP-1`, `HDMI-A-1`, `DP-5`, `DP-6`, etc.
+        '';
+      };
+
+      size = lib.mkOption {
+        type = types.nullOr (point2DType types.float);
+        readOnly = true;
+        description = ''
+          The virtual display size after scaling,
+          indended for use in recursive Nix configurations.
+        '';
+      };
+      modeString = lib.mkOption {
+        type = types.singleLineStr;
+        internal = true;
+      };
+      positionString = lib.mkOption {
+        type = types.singleLineStr;
+        internal = true;
+      };
+    };
+
+    config = let
+      positionIsPoint = (point2DType types.ints.unsigned).check config.position;
+      resolutionIsPoint =
+        (point2DType types.ints.positive).check config.resolution;
+    in {
+      output =
+        lib.mkIf (config.description != null) "desc:${config.description}";
+
+      size = if resolutionIsPoint then
+        let
+          transform = transformEnum.variantName config.transform;
+          normal = {
             x = config.resolution.x / config.scale;
             y = config.resolution.y / config.scale;
           };
+          rotated = {
+            x = normal.y;
+            y = normal.x;
+          };
+          lut = {
+            "Normal" = normal;
+            "Degrees90" = rotated;
+            "Degrees180" = normal;
+            "Degrees270" = rotated;
+            "Flipped" = normal;
+            "FlippedDegrees90" = rotated;
+            "FlippedDegrees180" = normal;
+            "FlippedDegrees270" = rotated;
+          };
+        in lut.${transform}
+      else
+        null;
 
-          keywordParams = lib.concatLists [
-            [
-              config.name
-            ]
+      modeString = if resolutionIsPoint then
+      # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
+        "${toString config.resolution.x}x${toString config.resolution.y}${
+          lib.optionalString (config.refreshRate != null)
+          "@${toString config.refreshRate}"
+        }"
+      else
+      # The resolution verbatim if it is an enum string.
+        config.resolution;
 
-            # The resolution in `WIDTHxHEIGHT@REFRESH`, with `@REFRESH` optionally.
-            (lib.optional resolutionIsPoint
-              "${toString config.resolution.x}x${toString config.resolution.y}${
-                lib.optionalString (config.refreshRate != null)
-                "@${toString config.refreshRate}"
-              }")
-            # The resolution verbatim if it is an enum string.
-            (lib.optional (!resolutionIsPoint) config.resolution)
-
-            # The position in `XxY` format if it is a point.
-            (lib.optional positionIsPoint
-              "${toString config.position.x}x${toString config.position.y}")
-            # The position verbatim if it is an enum string.
-            (lib.optional (!positionIsPoint) config.position)
-
-            #
-            [ (toString config.scale) ]
-            [ "bitdepth" (toString config.bitdepth) ]
-            (lib.optionals (config.vrrMode != null) [
-              "vrr"
-              (toString config.vrrMode)
-            ])
-            [
-              "transform"
-              (if lib.isInt config.transform then
-                toString config.transform
-              else
-                toString transformEnum.${config.transform})
-            ]
-            (lib.optionals (config.mirror != null) [ "mirror" config.mirror ])
-            #
-          ];
-        };
-      }));
-
+      positionString = if positionIsPoint then
+      # The position in `XxY` format if it is a point.
+        "${toString config.position.x}x${toString config.position.y}"
+      else
+      # The position verbatim if it is an enum string.
+        config.position;
+    };
+  });
+in {
+  options = {
+    wayland.windowManager.hyprland.monitors = lib.mkOption {
+      type = types.attrsOf monitorDefType;
+      default = { };
       description = ''
         Monitors to configure. The attribute name is not used in the
         Hyprland configuration, but is a convenience for recursive Nix.
 
-        The "name" the monitor will have (the connector, not make and model)
-        is specified in the `name` attribute for the monitor.
+        The "output" the monitor will have (the connector, not make and model)
+        is specified in the `output` attribute for the monitor.
         It is not the attribute name of the monitor in *this* parent set.
-      '';
 
+        The submodule type for monitor definitions is not exhaustive of all
+        variables supported by Hyprland. For that reason, the submodule
+        is also freeform; you may specify arbitrary attributes,
+        and they will be serialized verbatim to the Hyprland configuration.
+
+        For a list of extra variables not exposed as submodule options,
+        see the [`monitorv2` section] on the Hyprland wiki.
+
+        [`monitorv2 section`]: https://wiki.hypr.land/Configuring/Monitors/#monitor-v2
+      '';
       example = lib.literalExpression ''
         (with config.wayland.windowManager.hyprland.monitors; {
           # The attribute name `internal` is for usage in recursive Nix.
           internal = {
-            name = "eDP-1";
+            output = "eDP-1";
             pos = "auto"; # `auto` is default
             size = "preferred"; # `preferred` is default
             bitdepth = 10;
           };
         })
       '';
-
-      default = { };
     };
   };
 
-  config = {
-    wayland.windowManager.hyprland.config.monitor = lib.mapAttrsToList
-      (attrName: monitor: lib.concatStringsSep "," monitor.keywordParams) cfg;
+  config = let
+    monitorDefOptions = lib.attrNames
+      (removeAttrs (monitorDefType.getSubOptions [ ]) [
+        "_freeformOptions"
+        "_module"
+      ]);
+  in {
+    wayland.windowManager.hyprland.config.monitorv2 = lib.mapAttrsToList
+      (_: def:
+        {
+          inherit (def) output;
+          disabled = lib.mkIf def.disable def.disable;
+          mode = def.modeString;
+          position = def.positionString;
+          scale = lib.mkIf (def.scale != 1.0) def.scale;
+          vrr = lib.mkIf (def.vrrMode != null) def.vrrMode;
+          bitdepth = lib.mkIf (def.bitdepth != 8) def.bitdepth;
+          transform = let default = transformEnum.mapping."Normal";
+          in lib.mkIf (def.transform != default) def.transform;
+          mirror = lib.mkIf (def.mirror != null) def.mirror;
+        } // removeAttrs def monitorDefOptions) cfg;
   };
 }
