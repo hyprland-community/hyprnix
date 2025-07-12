@@ -155,6 +155,13 @@ in {
           [ "source" ]
 
           [ "monitor" ]
+          [ "monitorv2" ]
+          [ "monitorv2" "output" ]
+          [ "monitorv2" "mode" ]
+          [ "monitorv2" "position" ]
+          [ "monitorv2" "scale" ]
+          [ "monitorv2" "transform" ]
+
           [ "workspace" ]
 
           [ "dwindle" ]
