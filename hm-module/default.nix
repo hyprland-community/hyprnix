@@ -17,5 +17,6 @@ in {
     ./keybinds.nix
     ./monitors.nix
     ./devices.nix
+    ./portal.nix
   ];
 }
