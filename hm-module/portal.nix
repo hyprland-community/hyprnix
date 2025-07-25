@@ -57,6 +57,30 @@ in {
           The final XDPH package to install, with necessary overrides applied.
         '';
       };
+
+      config = lib.mkOption {
+        # If this ever gets more complicated, just instantiate `configFormat.nix`.
+        type = with types;
+          let
+            valueType = oneOf [ bool number singleLineStr attrsOfValueTypes ];
+            attrsOfValueTypes = attrsOf valueType;
+          in attrsOfValueTypes;
+        default = { };
+        description = ''
+          XDPH configuration attributes.
+
+          This will be serialized to Hyprlang at
+          {path}`$XDG_CONFIG_HOME/hypr/xdph.conf`.
+
+          ::: {.note}
+          The configuration file will be generated as long as this option
+          has been set to some meaningful value. It is not dependent upon
+          {option}`wayland.windowManager.hyprland.portal.enable`.
+          :::
+
+          For available options, see <https://wiki.hypr.land/Hypr-Ecosystem/xdg-desktop-portal-hyprland/#configuration>.
+        '';
+      };
     };
   };
 
@@ -79,6 +103,11 @@ in {
         extraPortals = [ cfg.finalPackage ];
         configPackages = [ config.wayland.windowManager.hyprland.finalPackage ];
       };
+    })
+    (lib.mkIf (cfg.config != { }) {
+      wayland.windowManager.hyprland.configFile."xdph.conf".text =
+        lib.generators.toHyprlang
+        config.wayland.windowManager.hyprland.configFormatOptions cfg.config;
     })
   ];
 }
