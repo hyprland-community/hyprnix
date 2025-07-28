@@ -7,7 +7,7 @@ in {
     "services/window-managers/hyprland.nix"
   ];
 
-  imports = map (nix: import nix { inherit self lib; }) [
+  imports = map (nix: lib.modules.importApply nix { inherit self lib; }) [
     ./config.nix
     ./compat.nix
     ./events.nix
