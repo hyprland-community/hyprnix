@@ -40,6 +40,11 @@ in {
       package = lib.mkOption {
         type = types.package;
         default = defaultPackage;
+        defaultText = ''
+          The package with the highest version number, chosen from:
+          - `pkgs.xdg-desktop-portal-hyprland` (if the overlay is used, always this)
+          - `self.packages.''${pkgs.system}.xdg-desktop-portal-hyprland`, from the Hyprnix flake.
+        '';
         example = lib.literalExpression ''
           pkgs.xdg-desktop-portal-hyprland # if you use the overlay
         '';
