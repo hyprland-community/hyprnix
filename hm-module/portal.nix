@@ -33,7 +33,7 @@ in {
           `org.freedesktop.impl.portal.FileChooser`.
           :::
 
-          See `man 5 portals.conf` and <https://wiki.archlinux.org/title/XDG_Desktop_Portal>.
+          See {manpage}`portals.conf(5)` and <https://wiki.archlinux.org/title/XDG_Desktop_Portal>.
         '';
       };
 
