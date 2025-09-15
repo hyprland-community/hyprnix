@@ -18,5 +18,6 @@ in {
     ./monitors.nix
     ./devices.nix
     ./portal.nix
+    ./uwsm.nix
   ];
 }
