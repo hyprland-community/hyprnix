@@ -1,5 +1,5 @@
 { lib, ... }:
-{ config, ... }:
+{ config, osConfig ? null, ... }:
 let
   cfg = config.programs.uwsm;
 
@@ -17,13 +17,17 @@ in {
       };
       sourceSessionVariables = lib.mkOption {
         type = lib.types.bool;
-        default = false;
+        default = osConfig.programs.uwsm.enable or true;
+        defaultText = ''
+          Enabled by default if:
+            - you are using Home Manager as a NixOS module and have `programs.uwsm.enable = true`,
+            - or if Home Manager is running "standalone" (can't know if UWSM is enabled).
+        '';
         description = ''
           Whether to link Home Manager's session variables script
           (`hm-session-vars.sh`) to `$XDG_CONFIG_HOME/uwsm/env`.
 
-          It is highly recommended to enable this option if you are using the UWSM
-          NixOS module.
+          Disable this option if you do not use UWSM as a NixOS module.
         '';
       };
     };
