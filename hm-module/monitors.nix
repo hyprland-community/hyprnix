@@ -68,6 +68,10 @@ let
       (lib.mkRenamedOptionModule [ "disabled" ] [ "disable" ])
     ];
 
+    # Other attributes may be specified for `monitorv2`, you can find them
+    # here: <https://wiki.hypr.land/Configuring/Monitors/#monitor-v2>
+    freeformType = with types; attrsOf (oneOf [ bool number ]);
+
     options = {
       output = lib.mkOption {
         type = types.singleLineStr;
@@ -271,6 +275,16 @@ in {
         The "output" the monitor will have (the connector, not make and model)
         is specified in the `output` attribute for the monitor.
         It is not the attribute name of the monitor in *this* parent set.
+
+        The submodule type for monitor definitions is not exhaustive of all
+        variables supported by Hyprland. For that reason, the submodule
+        is also freeform; you may specify arbitrary attributes,
+        and they will be serialized verbatim to the Hyprland configuration.
+
+        For a list of extra variables not exposed as submodule options,
+        see the [`monitorv2` section] on the Hyprland wiki.
+
+        [`monitorv2 section`]: https://wiki.hypr.land/Configuring/Monitors/#monitor-v2
       '';
       example = lib.literalExpression ''
         (with config.wayland.windowManager.hyprland.monitors; {
@@ -286,19 +300,26 @@ in {
     };
   };
 
-  config = {
+  config = let
+    monitorDefOptions = lib.attrNames
+      (removeAttrs (monitorDefType.getSubOptions [ ]) [
+        "_freeformOptions"
+        "_module"
+      ]);
+  in {
     wayland.windowManager.hyprland.config.monitorv2 = lib.mapAttrsToList
-      (_: def: {
-        inherit (def) output;
-        disabled = lib.mkIf def.disable def.disable;
-        mode = def.modeString;
-        position = def.positionString;
-        scale = lib.mkIf (def.scale != 1.0) def.scale;
-        vrr = lib.mkIf (def.vrrMode != null) def.vrrMode;
-        bitdepth = lib.mkIf (def.bitdepth != 8) def.bitdepth;
-        transform = let default = transformEnum.mapping."Normal";
-        in lib.mkIf (def.transform != default) def.transform;
-        mirror = lib.mkIf (def.mirror != null) def.mirror;
-      }) cfg;
+      (_: def:
+        {
+          inherit (def) output;
+          disabled = lib.mkIf def.disable def.disable;
+          mode = def.modeString;
+          position = def.positionString;
+          scale = lib.mkIf (def.scale != 1.0) def.scale;
+          vrr = lib.mkIf (def.vrrMode != null) def.vrrMode;
+          bitdepth = lib.mkIf (def.bitdepth != 8) def.bitdepth;
+          transform = let default = transformEnum.mapping."Normal";
+          in lib.mkIf (def.transform != default) def.transform;
+          mirror = lib.mkIf (def.mirror != null) def.mirror;
+        } // removeAttrs def monitorDefOptions) cfg;
   };
 }
