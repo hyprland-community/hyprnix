@@ -1,3 +1,23 @@
+# The design of this library avoids treating the AST as objects containing the parse state as well as their curried operands.
+# To avoid this however, we rely on a nontrivial Nix-expression to Hyprlang AST transformer, and it can be difficult to encapsulate
+# both the Nix side and the Hyprlang side cohesively. This is not using the Nixpkgs type system for the sake of
+# performance, forwards-compatibility with itself and user's configuration, and just general simplicity.
+# It does however depend on some simple functions for transforming Nix expressions from `bird-nix-lib`,
+# which probably needs some attention.
+#
+# Without injucting functions into the configuration's expression,
+# 1. Turn Nix values into corresponding nodes and leaf values for AST (`attrsToNodeList` unless overridden).
+# 2. Walk the AST and prune empty nodes,
+# 3. Sort the AST recursively by a predicate.
+#    The default predicate is defined by the user's Nix configuration, with sensible defaults.
+#    It is exposed as a function which (hopefully) is easy to interpret. See the library function
+#    `orderOfPath` in `ordering.nix`, then how the default predicate is constructed as an index
+#    comparison in `hm-module/configFormat.nix`.
+# 4. Post-process with niceties, like extra line breaks between dissimilar blocks and indentation.
+#    This heavily influenced the design of a "node list" (AST). These are inserted as AST nodes,
+#    and their values can't be represented by the input of step 1.
+# 5. Finally, a function walks the AST and accumulates the text of the Hyprlang configuration (`renderNodeList`).
+
 lib: _:
 let
   toConfigString = {
@@ -44,30 +64,44 @@ let
   isRepeatNode = isNodeType "repeatBlock";
   isSectionNode = isNodeType "configDocument";
 
+  # Produces amorphous node prototypes
   mkNodeType = type: path: name: value: {
     _node_type = type;
     inherit name value;
+    # `path` is somewhat arbitrary depending upon the implementation of `toConfigString`,
+    # It is used for levels of indentation and sorting.
     path = path ++ [ name ];
   };
+  # Curry off the `_node_type` identifier and produce the factories that `renderNodeList` can handle.
+  # Apply `path`, `name`, `value` arguments.
   mkStringNode = mkNodeType "string";
   mkIndentNode = mkNodeType "indent";
+  # This is the leaf node.
   mkVariableNode = mkNodeType "variable";
   mkRepeatNode = mkNodeType "repeatBlock";
   mkSectionNode = mkNodeType "configDocument";
 
   nodeType = builtins.getAttr "_node_type";
+  # Apply a function to an AST node's Nix value.
   mapValue = fn: node: node // { value = fn node.value; };
 
   # concatListsSep = sep: lib.foldl' (a: b: a ++ [sep] ++ b) [];
 
+  # This function will be invoked recursively. `path` is the current depth of Hyprlang sections,
+  # represented as a list of Nix attribute names. `attrs` is the current document to transform.
   attrsToNodeList = path: attrs:
     let
+      # Variables can't be attributes or lists. These are the leaves.
       variables = lib.pipe attrs [
+        # Exclude sections and repeats.
         (lib.filterAttrs (_: v: !(lib.isAttrs v || lib.isList v)))
+        # For every remaining attribute, convert each `name` and `value` pair to a variable node.
         (lib.mapAttrsToList (mkVariableNode path))
       ];
+      # These are variables which have been provided as a list of values for the same keyword.
       repeats = lib.pipe attrs [
-        (lib.filterAttrs (_: lib.isList))
+        # Repeats are always lists.
+        (lib.filterAttrs (_: lib.isList)) 
         (lib.mapAttrsToList (name: values:
           mkRepeatNode path name (map (value:
             if lib.isAttrs value then
@@ -76,12 +110,21 @@ let
               mkVariableNode path name value) values)))
       ];
       sections = lib.pipe attrs [
+        # Configuration sections can only be attributes.
         (lib.filterAttrs (_: lib.isAttrs))
+        # For every top-level attribute name and value, create a node with a path, name, and value.
+        # The node's name is pushed to the top of the path stack.
         (lib.mapAttrsToList (name: value:
           mkSectionNode path name (attrsToNodeList (path ++ [ name ]) value)))
       ];
+    # Finally, emit a recursive list of lists.
+    # Variables will be flat nodes at the end of the intermediate AST,
+    # repeats will be a list of variables but with a path depth different
+    # than what is represented by this output,
+    # and sections are recursive lists of variables, repeats, and sections.
     in lib.concatLists [ variables repeats sections ];
 
+  # Does what it says on the tin.
   pruneEmptyNodesRecursive = lib.foldl' (nodes: next:
     let
       next' = if isRepeatNode next || isSectionNode next then
@@ -90,6 +133,10 @@ let
         next;
     in if next'.value == [ ] then nodes else nodes ++ [ next' ]) [ ];
 
+  # Recursively walk the AST lists and compare the paths of each pair of adjacent nodes,
+  # and order them according to the predicate function provided.
+  # The predicate emits `true` if the first node must be positioned
+  # after its successor in the Hyprlang output.
   sortNodeListRecursive = sortPred:
     let
       recurse = l:
